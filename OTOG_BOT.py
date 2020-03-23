@@ -2,6 +2,11 @@ import discord
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
+TOKEN = input("Tell me your TOKEN :) :")
+if TOKEN == "":
+	print("WTF MANN")
+	exit(1)
+
 def Get_Task():
 	webpage = urlopen(req).read()
 	webpage = str(webpage)
@@ -111,4 +116,4 @@ class MyClient(discord.Client):
 
 
 client = MyClient()
-client.run('NjkxNTg0MjYxNjM0OTE2Mzk5.XniGYA.UkXoQidee__15AhNYsS65JaAoTY')
+client.run('NjkxNTg0MjYxNjM0OTE2Mzk5.XnjX9g.mDGJ5NP5F0qj18JPpjNe81q7Ong')
