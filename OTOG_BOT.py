@@ -7,7 +7,7 @@ if TOKEN == "":
 	print("WTF MANN")
 	exit(1)
 
-def Get_Task():
+def Count_All_Task():
 	webpage = urlopen(req).read()
 	webpage = str(webpage)
 	i = webpage.find("nosub = ");
@@ -17,7 +17,7 @@ def Get_Task():
 			return webpage[i:i+j]
 	return "??"
 
-def Get_Today_Task():
+def Count_Today_Task():
 	webpage = urlopen(req).read()
 	webpage = str(webpage)
 	#<h5 class="font_white cnt_msg">โจทย์วันนี้</h5>
@@ -76,11 +76,11 @@ class MyClient(discord.Client):
 			await message.channel.send('อาจจะมีในอนาคต อิอิ')
 
 		if message.content.startswith('task()'):
-			await message.channel.send('มีอยู่ '+ Get_Task() +" ข้อ")
+			await message.channel.send('มีอยู่ '+ Count_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
 		if message.content.startswith('today_task()'):
-			await message.channel.send('มีอยู่ '+ Get_Today_Task() +" ข้อ")
+			await message.channel.send('มีโจทย์ใหม่ '+ Count_Today_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
 		if message.content.startswith('user_life()'):
