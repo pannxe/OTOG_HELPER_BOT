@@ -1,10 +1,7 @@
 import discord
-#<<<<<<< HEAD
 import requests
 import json
-#=======
 from random import randint
-#>>>>>>> 26aacaff43f8b073c78188559c564806f7e7266a
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
@@ -57,6 +54,38 @@ def Get_Random_Text_forHello():
     return Words[randint(0,len(Words)-1)] + " {0.author.mention}"
 
 
+def Get_Incoming_Contest():
+	response = requests.get("https://otog.cf/api/contest")
+	if response.status_code != 200:
+		return "เว็ปบึ้มง่าาาาาา"
+	Con = response.json()[-1]
+	Contest_Time = Con['time_start']
+	Now_Time = int(time.time())
+	Delta = Contest_Time - Now_Time
+
+	if Delta > 0:
+		Str_Time = "\n["+time.ctime(Contest_Time)+"]"
+
+		if Delta > 60*60*24 :
+			return 'จะมีคอนเทส "'+Con['name']+'" ในอีก '+str(Delta//(60*60*24)) \
+			+"วัน " \
+			+Str_Time
+		elif Delta > 60*60 :
+			return 'จะมีคอนเทส "'+Con['name']+'" ในอีก '+str(Delta//(60*60)) \
+			+" ชั่วโมง " + str((Delta%(60*60))//60)+" นาที " \
+			+Str_Time
+		elif Delta > 60:
+			return 'จะมีคอนเทส "'+Con['name']+'" ในอีก ' \
+			+str(Delta//60)+" นาที " \
+			+Str_Time
+		else:
+			return 'ไม่ต้องถามแล้ว อีกไม่ถึงนาทีจะมี "'+Con['name']+'" เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม!!!'
+
+	else:
+		return "ไม่มีการแข่งจ้าา วันนี้นอนได้\nอนาคตอาจจะมี"
+	return "????"
+
+
 class MyClient(discord.Client):
 	async def on_ready(self):
 		print('Logged in as')
@@ -87,7 +116,7 @@ class MyClient(discord.Client):
 			await message.channel.send('ยังมีชีวิตอยู่')
 
 		if message.content.startswith('contest()'):
-			await message.channel.send('อาจจะมีในอนาคต อิอิ')
+			await message.channel.send(Get_Incoming_Contest())
 
 		if message.content.startswith('task()'):
 			await message.channel.send('มีอยู่ '+ Count_All_Task() +" ข้อ")
