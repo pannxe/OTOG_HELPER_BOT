@@ -85,7 +85,7 @@ class MyClient(discord.Client):
 			await message.channel.send('อาจจะมีในอนาคต อิอิ')
 
 		if message.content.startswith('task()'):
-			await message.channel.send('มีอยู่ '+ Count_Task() +" ข้อ")
+			await message.channel.send('มีอยู่ '+ Count_All_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
 		if message.content.startswith('today_task()'):
