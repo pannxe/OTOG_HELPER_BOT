@@ -67,20 +67,17 @@ def Get_Incoming_Contest():
 	if Delta > 0:
 		Str_Time = "\n["+time.ctime(Contest_Time)+"]"
 
-		if Delta > 60*60*24 :
-			return 'จะมีคอนเทส "'+Con['name']+'" ในอีก '+str(Delta//(60*60*24)) \
-			+"วัน " \
-			+Str_Time
-		elif Delta > 60*60 :
-			return 'จะมีคอนเทส "'+Con['name']+'" ในอีก '+str(Delta//(60*60)) \
-			+" ชั่วโมง " + str((Delta%(60*60))//60)+" นาที " \
-			+Str_Time
+		Ap_Time = " ";
+		if Delta > 60*60*24:
+			Ap_Time = str(Delta//(60*60*24)) + " วัน "
+		elif Delta > 60*60:
+			Ap_Time = str(Delta//(60*60)) + " ชั่วโมง " + str((Delta%(60*60))//60) + " นาที "
 		elif Delta > 60:
-			return 'จะมีคอนเทส "'+Con['name']+'" ในอีก ' \
-			+str(Delta//60)+" นาที " \
-			+Str_Time
+			Ap_Time = str(Delta//60) + " นาที "
 		else:
-			return 'ไม่ต้องถามแล้ว อีกไม่ถึงนาทีจะมี "'+Con['name']+'" เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม!!!'
+			Ap_Time = "ไม่ถึงนาที! เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม"
+
+		return "จะมีคอนเทส `" + Con['name'] + "` ในอีก `" + Ap_Time + "`" + Str_Time
 
 	else:
 		return "ไม่มีการแข่งจ้าา วันนี้นอนได้\nอนาคตอาจจะมี"
@@ -154,8 +151,6 @@ class MyClient(discord.Client):
 	async def announcements(Con):
 		channel = client.get_channel(691618323468779532)
 		await channel.send(Con)
-
-
 
 client = MyClient()
 client.run(TOKEN)
