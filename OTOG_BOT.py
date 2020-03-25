@@ -41,8 +41,13 @@ def Get_User_Ongoing():
 	for j in range(0,1000):
 		if webpage[i+j] == '<':
 
-			e = webpage[i:i+j];
-			return "ฮั่นแน่ มี "+e+" ที่ยังมีชีวิตอยู่"
+			e = webpage[i:i+j].split(",");
+
+			Text_ALL = "";
+			for stt in e:
+				Text_ALL += stt + ", "
+
+			return "ฮั่นแน่ มี "+Text_ALL[:-2]+" ทำโจทย์อยู่"
 	return "ไม่มีอะ"
 
 def Get_Random_Text_forMention():
