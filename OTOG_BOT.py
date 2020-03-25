@@ -1,6 +1,7 @@
 import discord
 import requests
 import json
+import time
 from random import randint
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
