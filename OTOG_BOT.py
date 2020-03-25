@@ -1,4 +1,10 @@
 import discord
+<<<<<<< HEAD
+import requests
+import json
+=======
+from random import randint
+>>>>>>> 26aacaff43f8b073c78188559c564806f7e7266a
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
@@ -7,7 +13,7 @@ if TOKEN == "":
 	print("WTF MANN")
 	exit(1)
 
-def Get_Task():
+def Count_All_Task():
 	webpage = urlopen(req).read()
 	webpage = str(webpage)
 	i = webpage.find("nosub = ");
@@ -17,7 +23,7 @@ def Get_Task():
 			return webpage[i:i+j]
 	return "??"
 
-def Get_Today_Task():
+def Count_Today_Task():
 	webpage = urlopen(req).read()
 	webpage = str(webpage)
 	#<h5 class="font_white cnt_msg">โจทย์วันนี้</h5>
@@ -41,6 +47,14 @@ def Get_User_Ongoing():
 			return "ฮั่นแน่ มี "+e+" ที่ยังมีชีวิตอยู่"
 	return "ไม่มีอะ"
 
+def Get_Random_Text_forMention():
+
+    Words = ["จงทำโจทย์ จงทำโจทย์ จงทำโจทย์","ทำโจทย์เถอะ ขอหล่ะ","ว่างมากนั้นก็ไปทำโจทย์สิ","ไม่อ่าน ไม่ตอบ ไม่สน...","แต่ว่า...ทำโจทย์ด้วยสิ...",";w;","=A=!","- -*","แล้วไง?","https://giphy.com/gifs/sad-cry-capoo-3og0IG0skAiznZQLde","https://giphy.com/stickers/cat-pearl-capoo-TFUhSMPFJG7fPAiLpQ","https://giphy.com/gifs/happy-rainbow-capoo-XEgmzMLDhFQAga8umN","https://giphy.com/gifs/cat-color-capoo-dYZxsY7JIMSy2Afy6e","ระเบิดเวลา......**อ๊าาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาา**","โฮ่... แทนที่แกจะเข้าค่ายอื่น แกกลับเดินมาค่ายคอม อย่างนั้นนะเรอะ","เปล่าประโยชน์ เปล่าประโยชน์ เปล่าประโยชน์ เปล่าประโยชน์","**How Dare You!!??**","เคยฟังรึเปล่า... X ติดไซเรน (https://pastebin.com/6a7u1b85)","พี่รู้ว่ามันเศร้า แต่จงทำโจทย์ต่อไปครับ","ญิรดีร์ฏ้อณรับสูเก็ฒเฎอร์ฌาวไฑญ",":thinking:",":joy:",":poop:",":+1:",":eyes:",":P"]
+    return Words[randint(0,len(Words)-1)]
+
+def Get_Random_Text_forHello():
+    Words = ["สวัสดีเจ้า","สวัสดีจ้า","สวัสดีครับ","สวัสดีค่ะ","ສະບາຍດີ","Annyeonghaseyo","Kon'nichiwa","Hello","привет!","ว่าไง",";w;?","Meow Meooww?",":wave:","https://giphy.com/gifs/capoo-halloween-3ov9k0OmfNYeLdK4gg","Nǐ hǎo"]
+    return Words[randint(0,len(Words)-1)] + " {0.author.mention}"
 
 
 class MyClient(discord.Client):
@@ -58,7 +72,7 @@ class MyClient(discord.Client):
 
 
 		if message.content.startswith('hello()'):
-			await message.channel.send('สวัสดีไอ้หน้า {0.author.mention}'.format(message))
+			await message.channel.send(Get_Random_Text_forHello().format(message))
 		if message.content.startswith('help()') or message.content.startswith('!help'):
 			em = discord.Embed(title = "สิ่งที่น้อมทำได้",description = "มีแค่นี้แหละ")
 			em.add_field(name = "help()",value = "ก็ที่ทำอยู่ตอนนี้แหละ")
@@ -76,11 +90,11 @@ class MyClient(discord.Client):
 			await message.channel.send('อาจจะมีในอนาคต อิอิ')
 
 		if message.content.startswith('task()'):
-			await message.channel.send('มีอยู่ '+ Get_Task() +" ข้อ")
+			await message.channel.send('มีอยู่ '+ Count_All_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
 		if message.content.startswith('today_task()'):
-			await message.channel.send('มีอยู่ '+ Get_Today_Task() +" ข้อ")
+			await message.channel.send('มีโจทย์ใหม่ '+ Count_Today_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
 		if message.content.startswith('user_life()'):
@@ -88,10 +102,8 @@ class MyClient(discord.Client):
 
 
 		for Mem in message.mentions:
-			if "OTOG_Helper" == Mem.display_name:
-				await message.channel.send('ไม่อ่าน ไม่ตอบ ไม่สน...')
-				await message.channel.send('สนแค่คำสั่งที่ลงท้ายด้วย ()')
-				await message.channel.send('ลอง help() จะช่วยให้ชีวิตดีขึ้น :)')
+			if self.user.name == Mem.display_name:
+				await message.channel.send(Get_Random_Text_forMention())
 				break
 
 	async def on_guild_join(guild):
