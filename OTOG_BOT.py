@@ -122,7 +122,7 @@ class MyClient(discord.Client):
 			await message.channel.send('ยังมีชีวิตอยู่')
 
 		if message.content.startswith('contest()'):
-			await message.channel.send(Get_Incoming_Contest())
+			await message.channel.send(Get_Incoming_Contest().format(message))
 
 		if message.content.startswith('task()'):
 			await message.channel.send('มีอยู่ '+ Count_All_Task() +" ข้อ")
