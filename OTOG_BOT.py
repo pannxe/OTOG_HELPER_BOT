@@ -81,7 +81,7 @@ def Get_Incoming_Contest():
 
 	else:
 		if Now_Time < Con['time_end'] :
-			return "ยัง... ยังจะถามอีก เขาแข่งกันแล้วโว้ย!!!"
+			return "{0.author.mention}" + " ไอ้นี่มันอู้การแข่งคร๊าาาาบ\nเขาแข่งกันแล้วววว"
 		else:
 			return "ไม่มีการแข่งจ้าา วันนี้นอนได้\nอนาคตอาจจะมี"
 	return "????"
