@@ -1,10 +1,10 @@
 import discord
-<<<<<<< HEAD
+#<<<<<<< HEAD
 import requests
 import json
-=======
+#=======
 from random import randint
->>>>>>> 26aacaff43f8b073c78188559c564806f7e7266a
+#>>>>>>> 26aacaff43f8b073c78188559c564806f7e7266a
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
