@@ -6,6 +6,8 @@ from random import randint
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
+DEB = ""#Before Command
+
 TOKEN = input("Tell me your TOKEN :) :")
 if TOKEN == "":
 	print("WTF MANN")
@@ -91,6 +93,21 @@ def Get_Incoming_Contest():
 			return "ไม่มีการแข่งจ้าา วันนี้นอนได้\nอนาคตอาจจะมี"
 	return "????"
 
+def Get_Top10_User():
+	response = requests.get("https://otog.cf/api/user")
+	Content = response.json()
+	StrNum = [
+	":one:",":two:",":three:",":four:",":five:",
+	":six:",":seven:",":eight:",":nine:",":keycap_ten:",
+	]
+	if response.status_code != 200:
+		return "เว็ปบึ้มง่าาาาาา"
+	Rank_Str = ":100:10 อันดับท่านเทพมีดังนี้:100:\n"
+	for i in range(0,10):
+		Rank_Str += "อันดับที่ " + StrNum[i] +" "+Content[i]["sname"]+" <"+str(Content[i]["rating"])+">\n"
+	Rank_Str += "อันดับต่อไป **อาจ เป็น คุณ**"
+	return Rank_Str
+
 
 class MyClient(discord.Client):
 	async def on_ready(self):
@@ -98,17 +115,30 @@ class MyClient(discord.Client):
 		print(self.user.name)
 		print(self.user.id)
 		print('------')
-		await client.change_presence(activity=discord.Game(name='รอทำคอนเทส'))
+		await client.change_presence(activity=discord.Game(name='ขายวิญญาณ'))
 
 	async def on_message(self, message):
         # we do not want the bot to reply to itself
 		if message.author.id == self.user.id:
 			return
 
+		Is_Admin = False
+		for r in message.author.roles:
+			if str(r) == "Adminstator":
+				Is_Admin = True
 
-		if message.content.startswith('hello()'):
+		Is_Channel_Admin = False
+		for r in message.channel.changed_roles:
+			if str(r) == "Adminstator":
+				Is_Channel_Admin = True
+
+		Is_Admin = Is_Admin and Is_Channel_Admin
+
+
+
+		if message.content.startswith(DEB+'hello()'):
 			await message.channel.send(Get_Random_Text_forHello().format(message))
-		if message.content.startswith('help()') or message.content.startswith('!help'):
+		if message.content.startswith(DEB+'help()') or message.content.startswith('!help'):
 			em = discord.Embed(title = "สิ่งที่น้อมทำได้",description = "มีแค่นี้แหละ")
 			em.add_field(name = "help()",value = "ก็ที่ทำอยู่ตอนนี้แหละ")
 			em.add_field(name = "hello()",value = "คำสั่งคนเหงา")
@@ -118,28 +148,60 @@ class MyClient(discord.Client):
 
 			await message.channel.send(content = None ,embed = em)
 
-		if message.content.startswith('test()'):
-			await message.channel.send('ยังมีชีวิตอยู่')
+			if Is_Admin:
+				em = discord.Embed(title = "สิ่งที่น้อมแอดมินทำได้",description = "แค่ในนี้เท่านั้น")
+				em.add_field(name = "user_life()",value = "ดูว่าใครมีชีวิตอยู่บ้าง")
+				em.add_field(name = "ann() <Text>",value = "ประกาศๆๆๆๆ")
+				em.add_field(name = "say(<Channel_ID>) <Text>",value = "ส่ง <Text> ไปยังห้อง <Channel_ID>")
+				await message.channel.send(content = None ,embed = em)
 
-		if message.content.startswith('contest()'):
+
+		if message.content.startswith(DEB+'test()'):
+			await message.channel.send('ยังมีชีวิตอยู่เด้อ')
+
+		if message.content.startswith(DEB+'contest()'):
 			await message.channel.send(Get_Incoming_Contest().format(message))
 
-		if message.content.startswith('task()'):
+		if message.content.startswith(DEB+'task()'):
 			await message.channel.send('มีอยู่ '+ Count_All_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
-		if message.content.startswith('today_task()'):
+		if message.content.startswith(DEB+'today_task()'):
 			await message.channel.send('มีโจทย์ใหม่ '+ Count_Today_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
-		if message.content.startswith('user_life()'):
-			await message.channel.send(Get_User_Ongoing())
-
+		if message.content.startswith(DEB+'ranking()'):
+			await message.channel.send(Get_Top10_User())
 
 		for Mem in message.mentions:
 			if self.user.name == Mem.display_name:
 				await message.channel.send(Get_Random_Text_forMention())
 				break
+
+		##Admin Command
+		if Is_Admin:
+
+			if message.content.startswith(DEB+'user_life()'):
+				await message.channel.send(Get_User_Ongoing())
+
+			if message.content.startswith(DEB+'ann()'):
+				Mes_Str = message.content[len(DEB+'ann()')+1:]
+				channel = client.get_channel(691575760674226217)
+				await channel.send(Mes_Str)
+
+			if message.content.startswith(DEB+'say('):
+				Str_Content = message.content
+				#Say(4412) ไอ้นี้มันอู้งานครับบ
+				Id_channel = Str_Content.find("(");
+
+				for i in range(1,40):
+					if Str_Content[Id_channel+i]==")":
+						channel = client.get_channel(int(Str_Content[Id_channel+1:Id_channel+i]))
+						await channel.send(Str_Content[Id_channel+i+2:])
+						break
+
+
+
 
 	async def on_guild_join(guild):
 		await guild.system_channel.send("กราบสวัสดีพ่อแม่พี่น้องครับ")
