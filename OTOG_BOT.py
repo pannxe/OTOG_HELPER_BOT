@@ -66,10 +66,10 @@ def Get_Random_Text_forHello():
 
 
 def Get_Incoming_Contest():
-	response = requests.get("https://otog.cf/api/contest/history")
+	response = requests.get("https://otog.cf/api/contest")
 	if response.status_code != 200:
 		return "เว็ปบึ้มง่าาาาาา"
-	Con = response.json()[-1]
+	Con = response.json()[0]
 	Contest_Time = Con['time_start']
 	Now_Time = int(time.time())
 	Delta = Contest_Time - Now_Time
@@ -87,7 +87,7 @@ def Get_Incoming_Contest():
 		else:
 			Ap_Time = "ไม่ถึงนาที! เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม"
 
-		return "จะมีคอนเทส `" + Con['name'] + "` ในอีก `" + Ap_Time + "`" + Str_Time
+		return "จะมีคอนเทสที่`" + str(Con['idContest']) + "`(ไม่มีชื่องะ) ในอีก `" + Ap_Time + "`" + Str_Time
 
 	else:
 		if Now_Time < Con['time_end'] :
