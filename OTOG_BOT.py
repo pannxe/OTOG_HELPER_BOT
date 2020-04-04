@@ -1,12 +1,15 @@
 import discord
 import requests
 import json
+from json import JSONEncoder
 import time
+import os.path
 from random import randint
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
 DEB = ""#Before Command
+VER = "B04"
 
 TOKEN = input("Tell me your TOKEN :) :")
 if TOKEN == "":
@@ -66,7 +69,7 @@ def Get_Incoming_Contest():
 	response = requests.get("https://otog.cf/api/contest")
 	if response.status_code != 200:
 		return "เว็ปบึ้มง่าาาาาา"
-	Con = response.json()[-1]
+	Con = response.json()[0]
 	Contest_Time = Con['time_start']
 	Now_Time = int(time.time())
 	Delta = Contest_Time - Now_Time
@@ -84,7 +87,7 @@ def Get_Incoming_Contest():
 		else:
 			Ap_Time = "ไม่ถึงนาที! เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม"
 
-		return "จะมีคอนเทส `" + Con['name'] + "` ในอีก `" + Ap_Time + "`" + Str_Time
+		return "จะมีคอนเทสที่`" + str(Con['idContest']) + "`(ไม่มีชื่องะ) ในอีก `" + Ap_Time + "`" + Str_Time
 
 	else:
 		if Now_Time < Con['time_end'] :
@@ -104,9 +107,15 @@ def Get_Top10_User():
 		return "เว็ปบึ้มง่าาาาาา"
 	Rank_Str = ":100:10 อันดับท่านเทพมีดังนี้:100:\n"
 	for i in range(0,10):
-		Rank_Str += "อันดับที่ " + StrNum[i] +" "+Content[i]["sname"]+" <"+str(Content[i]["rating"])+">\n"
+		Rank_Str += "อันดับที่ " + StrNum[i] +Content[i]["sname"]+" <"+str(Content[i]["rating"])+">\n"
 	Rank_Str += "อันดับต่อไป **อาจ เป็น คุณ**"
 	return Rank_Str
+
+def Get_Last_ContestID():
+	response = requests.get("https://otog.cf/api/contest/history")
+	if response.status_code != 200:
+		return None
+	return response.json()[-1]["idContest"]
 
 def Get_Problem_Name(id):
 	response = requests.get("https://otog.cf/api/problem")
@@ -128,18 +137,22 @@ def Get_Problem_Name(id):
 
 	if Content[ANS]["id_Prob"] != id:
 
-		Contest_api = requests.get("https://otog.cf/api/contest")
-		if Contest_api.status_code != 200:
-			return "เว็ปบึ้มง่าาาาาา"
-		Contest_api = Contest_api.json()[-1]
-		Now_Time = int(time.time())
-		if Now_Time >= Contest_api['time_start'] and   Now_Time <= Contest_api['time_end']:
-			#print(type(id),id,Contest_api['problems'][0])
+		Contest_api = Get_Last_ContestID()
+		Contest_api_new = requests.get("https://otog.cf/api/contest/"+str(Contest_api))
+		Contest_api_old = (requests.get("https://otog.cf/api/contest/history")).json()[-1]
 
-			X = Contest_api['problems'][1:-1].split(',')
+		if Contest_api_new.status_code != 200:
+			return "เว็ปบึ้มง่าาาาาา"
+
+		Now_Time = int(time.time())
+		if Now_Time <= Contest_api_old['time_end']:
+			#print(type(id),id,Contest_api['problems'][0])
+			if Now_Time < Contest_api_old['time_start'] :
+				return "NANI!?!?!?!?!?"
+			X = Contest_api_new['problem']
 
 			for iid in X:
-				iid = int(iid)
+				iid = iid["id_Prob"]
 				if id ==iid:
 					#print("F")
 					ALL_P = requests.get("https://otog.cf/api/admin/problem")
@@ -165,13 +178,90 @@ def Get_Problem_Name(id):
 		return "???????!??????"
 	else:
 		return Content[ANS]["name"]
-
 Question_List = []
 Question_User = {}
 
 class MyClient(discord.Client):
 
 	global Question_List
+	global Question_User
+
+	def sSave(self):
+		ddata = {
+			"Question_List":Question_List,
+			"Question_User":Question_User
+		}
+		with open("Save_Data"+VER+".otog", 'w') as outfile:
+			json.dump(ddata, outfile)
+
+	def lLoad(self):
+		global Question_User
+		global Question_List
+		if os.path.isfile("Save_Data"+VER+".otog"):
+			with open("Save_Data"+VER+".otog") as json_file:
+				ddata = json.load(json_file)
+				Question_List = ddata["Question_List"]
+				Question_User = ddata["Question_User"]
+
+
+	def Mes_To_ID(self,Mes):
+		Mes_ID = Mes.id
+		Cha_ID = Mes.channel.id
+		return {"Mes_ID" : Mes_ID,"Cha_ID" : Cha_ID}
+
+	async def ID_To_Mes(self,Ids):
+		Mes_ID = Ids["Mes_ID"]
+		Cha_ID = Ids["Cha_ID"]
+		try:
+			Cha = client.get_channel(Cha_ID)
+		except:
+			return None
+
+		#get_channel
+		try :
+			Mes = await Cha.fetch_message(Mes_ID)
+		except:
+			return None
+
+		return Mes
+
+
+	async def Reload_Question(self):
+		if len(Question_List) > 0:
+			Q_ind = 1
+			RRR = None
+			for L in Question_List:
+				L["Que_Ind"] = Q_ind
+
+				ME_ADMIN = await self.ID_To_Mes(L["Message_Admin"])
+				new_content =ME_ADMIN.content
+				for i in range(2,6):
+					if new_content[i] == " ":
+						new_content = "Q" + str(Q_ind)+new_content[i:]
+						break;
+
+				await ME_ADMIN.edit(content = new_content)
+
+				ME_ADMIN = await self.ID_To_Mes(L["Message"])
+
+				if ME_ADMIN == None:
+					RRR = Q_ind;
+
+				Q_ind+=1
+
+			if RRR != None:
+				Message_Sender = await self.ID_To_Mes(Question_List[RRR-1]["Message"])
+				if Message_Sender != None:
+					await Message_Sender.delete()
+
+				Mes_Admin = await self.ID_To_Mes(Question_List[RRR-1]["Message_Admin"])
+				if Mes_Admin != None:
+					await Mes_Admin.delete()
+				Question_User[Question_List[RRR-1]["Id_Sender"]].remove(Question_List[RRR-1]["Problem_Id"])
+				Question_List.pop(RRR-1)
+				await self.Reload_Question()
+		self.sSave()
+
 
 	async def on_ready(self):
 		print('Logged in as')
@@ -180,26 +270,29 @@ class MyClient(discord.Client):
 		print('------')
 		channel = client.get_channel(691644349758308423)
 		await channel.send('Bot is now online')
-		await client.change_presence(activity=discord.Game(name='ขายวิญญาณ'))
-
+		await client.change_presence(activity=discord.Game(name='รอทำคอนเทส help()'))
+		self.lLoad()
 
 
 	async def on_message(self, message):
 		global Question_List
 		global Question_User
+
         # we do not want the bot to reply to itself
 		if message.author.id == self.user.id:
 			return
 
 		Is_Admin = False
-		for r in message.author.roles:
-			if str(r) == "Adminstator":
-				Is_Admin = True
+		if hasattr(message.author, 'roles'):
+			for r in message.author.roles:
+				if str(r) == "Adminstator":
+					Is_Admin = True
 
 		Is_Channel_Admin = False
-		for r in message.channel.changed_roles:
-			if str(r) == "Adminstator":
-				Is_Channel_Admin = True
+		if hasattr(message.channel, 'changed_roles'):
+			for r in message.channel.changed_roles:
+				if str(r) == "Adminstator":
+					Is_Channel_Admin = True
 
 		Is_Admin = Is_Admin and Is_Channel_Admin
 
@@ -252,7 +345,8 @@ class MyClient(discord.Client):
 			response = requests.get("https://otog.cf/api/problem")
 
 			Message_Con = message
-			await message.delete()
+			if str(message.channel.type) != "private":
+				await message.delete()
 
 			if response.status_code != 200:
 				await Message_Con.author.send("ตอนนี้ เซิฟบึ้มครับ\nค่อยถามในภายหลังน้าา")
@@ -270,6 +364,7 @@ class MyClient(discord.Client):
 						return
 
 					Question_Con =  Str_Content[Id_Problem+i+2:]
+					Question_Con.replace("`","'")
 					Id_Problem = Str_Content[Id_Problem+1:Id_Problem+i]
 					break
 			try:
@@ -277,39 +372,84 @@ class MyClient(discord.Client):
 			except ValueError:
 				await Message_Con.author.send("ไหว้ล่ะ ใส่ <id> เป็นจำนวนเต็มเถอะ\nพี่ๆจะได้ตอบคำถามได้ง่ายๆ ?" + str(Id_Problem))
 				return
-			channel_Quation_All = client.get_channel(693370035410042922)
+			channel_Quation_All = client.get_channel(694444493570572288)
 
 			Problem_Name = Get_Problem_Name(Id_Problem)
 
 			if Problem_Name == "???????!??????":
 				await Message_Con.author.send("อย่าถามในข้อที่ยังไม่เปิดสิฟะ (ข้อที่"+str(Id_Problem)+")")
 				return
+			elif Problem_Name == "NANI!?!?!?!?!?":
+				await Message_Con.author.send("เห้ย!? เจ้ารู้ได้ไงว่ามันจะออกข้อที่"+str(Id_Problem)+"\nหรือว่า แกน่ะ คือผู้ใช้แสตนอย่างงั้นรึ")
+				return
 
 			Name_Sender = message.author.display_name
-			#Complete
-			if Name_Sender in Question_User :
-				Question_User[Name_Sender]+= 1
+			Id_Sender = str(message.author.id)
+
+			#print("Id_Sender =",Id_Sender)
+			#print("Question_User =",Question_User)
+			#print(Id_Sender in Question_User)
+			if Id_Sender in Question_User:
+				#print("Find ID")
+				if Id_Problem in Question_User[Id_Sender]:
+					#print("Find Problem")
+					for QQ in Question_List:
+						if QQ["Id_Sender"] == Id_Sender and QQ["Problem_Id"] == Id_Problem:
+							#print("GetQuestion")
+							#replace User Message
+							Mess = await self.ID_To_Mes(QQ["Message"])
+							Mess_Str = Mess.content
+							i = Mess_Str.find("\nQ : `")
+							i+=len("\nQ : `")
+
+							Mess_Str = Mess_Str[:i]
+							Mess_Str+=Question_Con + "`"
+
+							#replace Admin message
+							Mess = await self.ID_To_Mes(QQ["Message_Admin"])
+							Mess_Str = Mess.content
+							i = Mess_Str.find("ซึ่งถามมาว่า `")
+							i+=len("ซึ่งถามมาว่า `")
+
+							Mess_Str = Mess_Str[:i]
+							Mess_Str+=Question_Con + "`"
+
+							await Mess.edit(content = Mess_Str)
+
+							str_sen = "แก้คำถาม `{id}:{Pro_name}` เรียบร้อยแล้ว".format(id = Id_Problem,Pro_name = Problem_Name)
+							await Message_Con.author.send(str_sen)
+
+							return
+				else:
+					if len(Question_User[Id_Sender]) == 5:
+						await Message_Con.author.send("รู้สึกว่าเจ้าจะถามเยอะไปแล้วน่ะ **นี่ปาไป 5 คำถามแว้วว**\nให้คนอื่นได้ถามบ้าง งิ")
+						return
+					else:
+						Question_User[Id_Sender].append(Id_Problem)
 			else:
-				Question_User[Name_Sender] = 1
+				Question_User[Id_Sender] = [Id_Problem]
 
 
 
-			Message_Sent = await Message_Con.author.send("**ถามสำเร็จ**\nQ : ในข้อ `{id_name} : {id}` ถามว่า `{mes}`\nA : รอไปก่อนแบบใจเย็นๆ...".format(id_name = Problem_Name,id = Id_Problem,mes = Question_Con))
+
+			Message_Sent = await Message_Con.author.send("**ถามสำเร็จ**\nในข้อ `{id_name} : {id}` \nQ : `{mes}`\nA : รอไปก่อนแบบใจเย็นๆ...".format(id_name = Problem_Name,id = Id_Problem,mes = Question_Con))
 
 			Question_Ind = len(Question_List)+1
-			Mes_Str = """Q{ind} : มีน้องๆถามมาว่า ข้อ `{id_name} : {id}` ว่า `{mes}`""".format(ind = Question_Ind,id_name = Problem_Name,id = Id_Problem,mes = Question_Con)
+			Mes_Str = """Q{ind} : มีน้อง`{namae}`ถามมาว่า ข้อ `{id_name} : {id}` ซึ่งถามมาว่า `{mes}`""".format(namae = Name_Sender,ind = Question_Ind,id_name = Problem_Name,id = Id_Problem,mes = Question_Con)
 			Message_Sent_G = await channel_Quation_All.send(Mes_Str)
 
 			Question_List.append(\
 			{"Name_Sender" : Name_Sender, \
+			"Id_Sender" : Id_Sender, \
 			"Que_Ind" : Question_Ind, \
 			"Problem_Id" : Id_Problem, \
 			"Problem_name" : Problem_Name, \
 			"Que_Message" : Question_Con, \
-			"Message" : Message_Sent, \
-			"Message_Admin" : Message_Sent_G, \
+			"Message" : self.Mes_To_ID(Message_Sent), \
+			"Message_Admin" : self.Mes_To_ID(Message_Sent_G), \
 			"ANS" : "Q : ในข้อ `{id_name} : {id}` ถามว่า `{mes}`\nA : ".format(id_name = Problem_Name,id = Id_Problem,mes = Question_Con) \
 			})
+			self.sSave()
 
 
 
@@ -383,38 +523,35 @@ class MyClient(discord.Client):
 					return
 
 				Message_Sender = Question_List[Id_Question-1]["Message"]
+
+				Message_Sender = await self.ID_To_Mes(Message_Sender)
+
+				channel_Quation_All = client.get_channel(694444493570572288)
+
+				if Message_Sender == None:
+					await channel_Quation_All.send("น้องลบคำถามข้อที่ {ind} ไปแล้ว ;w;".format(ind = Id_Question))
+					Question_User[Question_List[Id_Question-1]["Id_Sender"]].remove(Question_List[Id_Question-1]["Problem_Id"])
+					Question_List.pop(Id_Question-1)
+					await self.Reload_Question()
+					return
+
 				#Ans_Con
 				await Message_Sender.edit(content=(Question_List[Id_Question-1]["ANS"]+'`'+Ans_Con+'`'))
 
-				channel_Quation_All = client.get_channel(693370035410042922)
-				await Question_List[Id_Question-1]["Message_Admin"].delete()
 
-				await channel_Quation_All.send("ตอบคำถามในข้อที่ {ind} สำเร็จ (คำถามจะเรียงใหม่ในทุกๆครั้งที่ตอบ)".format(ind = Id_Question))
+				Mes_Admin = await self.ID_To_Mes(Question_List[Id_Question-1]["Message_Admin"])
+
+				if Mes_Admin != None:
+					await Mes_Admin.delete()
+				await message.delete()
+				await channel_Quation_All.send("ตอบคำถามจากน้อง {namae} ในข้อที่ {ind} สำเร็จ ".format(ind = Id_Question,namae = Question_List[Id_Question-1]["Name_Sender"]))
 				await channel_Quation_All.send(content=(Question_List[Id_Question-1]["ANS"]+'`'+Ans_Con+'`'))
 
+				Question_User[Question_List[Id_Question-1]["Id_Sender"]].remove(Question_List[Id_Question-1]["Problem_Id"])
 				Question_List.pop(Id_Question-1)
-				if len(Question_List) > 0:
-					Q_ind = 1
-					for L in Question_List:
-						L["Que_Ind"] = Q_ind
-
-						new_content =L["Message_Admin"].content
-						for i in range(2,6):
-							if new_content[i] == " ":
-								new_content = "Q" + str(Q_ind)+new_content[i:]
-								break;
-
-						await L["Message_Admin"].edit(content = new_content)
-						Q_ind+=1
+				await self.Reload_Question()
 
 			if message.content.startswith(DEB+'q_remove('):
-
-				response = requests.get("https://otog.cf/api/problem")
-
-
-				if response.status_code != 200:
-					await message.channel.send("ตอนนี้ เซิฟบึ้มครับ\nค่อยตอบในภายหลังน้าา")
-					return
 
 				Str_Content = message.content
 				#question(<id>) <คำถาม>
@@ -436,42 +573,45 @@ class MyClient(discord.Client):
 					await message.channel.send("อย่าลบคำถามที่คำถามมันไม่มีจริงสิฟะ (ข้อที่"+str(Id_Question)+")")
 					return
 
-				Message_Sender = Question_List[Id_Question-1]["Message"]
 
-				await Message_Sender.delete()
-				await Question_List[Id_Question-1]["Message_Admin"].delete()
 
-				channel_Quation_All = client.get_channel(693370035410042922)
+				Message_Sender = await self.ID_To_Mes(Question_List[Id_Question-1]["Message"])
+				if Message_Sender != None:
+					await Message_Sender.delete()
+
+				Mes_Admin = await self.ID_To_Mes(Question_List[Id_Question-1]["Message_Admin"])
+				if Mes_Admin != None:
+					await Mes_Admin.delete()
+
+				channel_Quation_All = client.get_channel(694444493570572288)
 
 				await channel_Quation_All.send("ลบคำถามในข้อที่ {ind} สำเร็จ (คำถามจะเรียงใหม่ในทุกๆครั้งที่ตอบ)".format(ind = Id_Question))
 
+				Question_User[Question_List[Id_Question-1]["Id_Sender"]].remove(Question_List[Id_Question-1]["Problem_Id"])
 				Question_List.pop(Id_Question-1)
-				if len(Question_List) > 0:
-					Q_ind = 1
-					for L in Question_List:
-						L["Que_Ind"] = Q_ind
-
-						new_content =L["Message_Admin"].content
-						for i in range(2,6):
-							if new_content[i] == " ":
-								new_content = "Q" + str(Q_ind)+new_content[i:]
-								break;
-
-						await L["Message_Admin"].edit(content = new_content)
-						Q_ind+=1
+				await self.Reload_Question()
 
 			if message.content.startswith(DEB+'q_clear()'):
-				channel_Quation_All = client.get_channel(693370035410042922)
+				channel_Quation_All = client.get_channel(694444493570572288)
 				await channel_Quation_All.send("ลาก่อย")
 
 				if len(Question_List) > 0:
 					for q in Question_List:
-						await q["Message"].delete()
-						await q["Message_Admin"].delete()
+
+						MES_A = await self.ID_To_Mes(q["Message"])
+						if MES_A != None:
+							await MES_A.delete()
+
+						MES_A = await self.ID_To_Mes(q["Message_Admin"])
+						if MES_A != None:
+							await MES_A.delete()
+
 				Question_List = []
+				Question_User = {}
+				self.sSave()
 
 			if message.content.startswith(DEB+'q_list()'):
-				channel_Quation_All = client.get_channel(693370035410042922)
+				channel_Quation_All = client.get_channel(694444493570572288)
 				if len(Question_List) > 0:
 
 					Str_Content = "มีคำถามอยู่ `{crt}` ข้อ...\n".format(crt = len(Question_List))
