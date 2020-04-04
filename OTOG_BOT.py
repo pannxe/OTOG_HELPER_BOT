@@ -178,6 +178,8 @@ class MyClient(discord.Client):
 		print(self.user.name)
 		print(self.user.id)
 		print('------')
+		channel = client.get_channel(691644349758308423)
+		await channel.send('Bot is now online')
 		await client.change_presence(activity=discord.Game(name='ขายวิญญาณ'))
 
 
@@ -324,6 +326,11 @@ class MyClient(discord.Client):
 
 			if message.content.startswith(DEB+'user_life()'):
 				await message.channel.send(Get_User_Ongoing())
+			
+			if message.content.startswith(DEB+'shutdown()'):
+				channel = client.get_channel(691644349758308423)
+				await channel.send('Bot is now shutting down')
+				exit(1)
 
 			if message.content.startswith(DEB+'ann()'):
 				Mes_Str = message.content[len(DEB+'ann()')+1:]
