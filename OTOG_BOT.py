@@ -70,12 +70,24 @@ def Reload_Incoming_Contest():
 
 	if len(Con) == 0:
 		Contest_namae = "!!None!!"
+		Contest_Time = INF
+		Contest_End = INF
 
 	for cc in Con:
 		if cc['time_start'] < Contest_Time:
 			Contest_Time = cc['time_start']
-			Contest_End = cc['time_start']
+			Contest_End = cc['time_end']
 			Contest_namae = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
+
+def Second_To_Good_Str(sec):
+	if Delta > 60*60*24:
+		return str(Delta//(60*60*24)) + " วัน "
+	elif Delta > 60*60:
+		return str(Delta//(60*60)) + " ชั่วโมง " + str((Delta%(60*60))//60) + " นาที "
+	elif Delta > 60:
+		return str(Delta//60) + " นาที "
+	else:
+		return "ไม่ถึงนาที!"
 
 def Get_Incoming_Contest():
 	global Contest_Time
@@ -95,15 +107,9 @@ def Get_Incoming_Contest():
 	if Delta > 0:
 		Str_Time = "\n["+time.ctime(Contest_Time)+"]"
 
-		Ap_Time = " ";
-		if Delta > 60*60*24:
-			Ap_Time = str(Delta//(60*60*24)) + " วัน "
-		elif Delta > 60*60:
-			Ap_Time = str(Delta//(60*60)) + " ชั่วโมง " + str((Delta%(60*60))//60) + " นาที "
-		elif Delta > 60:
-			Ap_Time = str(Delta//60) + " นาที "
-		else:
-			Ap_Time = "ไม่ถึงนาที! เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม"
+		Ap_Time = Second_To_Good_Str(Delta);
+		if Ap_Time == "ไม่ถึงนาที!":
+			Ap_Time += " เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม"
 
 		return "จะมีคอนเทสที่" + Contest_namae +"ในอีก `" + Ap_Time + "`" + Str_Time
 
@@ -295,7 +301,7 @@ class MyClient(discord.Client):
 		await self.wait_until_ready()
 		Reload_Incoming_Contest()
 		st = 0
-		channel = client.get_channel(691618323468779532)
+		channel = client.get_channel(691644349758308423)
 		while True:
 
 			Now_Time = int(time.time())
@@ -308,7 +314,7 @@ class MyClient(discord.Client):
 				if Now_Time > Contest_Time:
 					if Contest_End != INF :
 						if Now_Time < Contest_End:
-							await client.change_presence(activity=discord.Game(name='กำลังทำคอนเทสจ้าา help()'))
+							await client.change_presence(activity=discord.Game(name='เหลือเวลา'+Second_To_Good_Str(Contest_End-Now_Time)+' help()'))
 				else:
 					await client.change_presence(activity=discord.Game(name='รอทำคอนเทส help()'))
 			else:
