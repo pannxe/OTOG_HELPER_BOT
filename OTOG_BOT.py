@@ -21,48 +21,24 @@ if TOKEN == "":
 	exit(1)
 
 def Count_All_Task():
-	webpage = urlopen(req).read()
-	webpage = str(webpage)
-	i = webpage.find("nosub = ");
-	i += 9;
-	for j in range(0,10):
-		if webpage[i+j] == '"':
-			return webpage[i:i+j]
-	return "??"
+	response = requests.get("https://otog.cf/api/countProblem")
+	if response.status_code != 200:
+		return "เว็ปบึ้มง่าาาาาา"
+	Con = response.json()["allProblem"]
+
+	return str(Con)
 
 def Count_Today_Task():
-	webpage = urlopen(req).read()
-	webpage = str(webpage)
-	#<h5 class="font_white cnt_msg">โจทย์วันนี้</h5>
-	i = webpage.find('<div class="count_button blue select-none">');
-	i += 272;
-	for j in range(0,10):
-		if webpage[i+j] == '<':
-			today_task = int(webpage[i:i+j])
-			if today_task == 0:
-				return "วันนี้ไม่มี\n**แต่ก็ไปทำข้อที่เหลือด้วย!!!**"
-			else:
-				return 'วันนี้มีโจทย์ใหม่ '+ Count_Today_Task() +" ข้อ\nไปทำด้วย"
-			return webpage[i:i+j]
 	return "??"
 
 def Get_User_Ongoing():
-	webpage = urlopen(req).read()
-	webpage = webpage.decode("utf-8")
-	i = webpage.find('<!--<h6 class="font_gray text-center"> ');
-	i += 39;
-	#print(webpage[i:i+20])
-	for j in range(0,1000):
-		if webpage[i+j] == '<':
-
-			e = webpage[i:i+j].split(",");
-
-			Text_ALL = "";
-			for stt in e:
-				Text_ALL += stt + ", "
-
-			return "ฮั่นแน่ มี "+Text_ALL[:-2]+" ทำโจทย์อยู่"
-	return "ไม่มีอะ"
+	response = requests.get("https://otog.cf/api/countProblem")
+	if response.status_code != 200:
+		return "เว็ปบึ้มง่าาาาาา"
+	Con = response.json()["onlineUser"]
+	if (Con == 0):
+		return "ไม่มีอะ เหงา Hereๆ"
+	return "ฮั่นแน่...มีคนทำโจทย์อยู่ "+str(Con)+"คน *แต่ไม่บอกหรอกว่าคือใคร*"
 
 def Get_Random_Text_forMention():
 
@@ -418,7 +394,7 @@ class MyClient(discord.Client):
 			em.add_field(name = "hello()",value = "คำสั่งคนเหงา")
 			em.add_field(name = "contest()",value = "คอนเทสที่กำลังจะมาถึง")
 			em.add_field(name = "task()",value = "จำนวนโจทย์ตอนนี้")
-			em.add_field(name = "today_task()",value = "โจทย์ใหม่วันนี้")
+			#em.add_field(name = "today_task()",value = "โจทย์ใหม่วันนี้")
 			em.add_field(name = "ranking()",value = "คำสั่งไว้ขิงกัน")
 			em.add_field(name = "question(<id>) <คำถาม>",value = "ถามคำถามเกี่ยวกับโจทย์ข้อที่ <id>\nและ<คำถาม>ควรตอบเป็น Yes/No(ใช่/ไม่ใช่)")
 			em.add_field(name = "[OtogRadio] <ชื่อเพลง>",value = "ขอเพลงได้ๆๆ")
@@ -453,7 +429,7 @@ class MyClient(discord.Client):
 			await message.channel.send('ไปทำด้วย!!!')
 
 		if message.content.startswith(DEB+'today_task()'):
-			await message.channel.send(Count_Today_Task())
+			await message.channel.send("อย่าถามเว้ย ไม่รุ")
 
 		if message.content.startswith(DEB+'ranking()'):
 			await message.channel.send(Get_Top10_User())
