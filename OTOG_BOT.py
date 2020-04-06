@@ -4,6 +4,8 @@ import json
 from json import JSONEncoder
 import time
 import os.path
+import asyncio
+from itertools import cycle
 from random import randint
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
@@ -64,13 +66,69 @@ def Get_Random_Text_forHello():
     Words = ["สวัสดีเจ้า","สวัสดีจ้า","สวัสดีครับ","สวัสดีค่ะ","ສະບາຍດີ","Annyeonghaseyo","Kon'nichiwa","Hello","привет!","ว่าไง",";w;?","Meow Meooww?",":wave:","https://giphy.com/gifs/capoo-halloween-3ov9k0OmfNYeLdK4gg","Nǐ hǎo"]
     return Words[randint(0,len(Words)-1)] + " {0.author.mention}"
 
+def Get_Incoming_Contest_Start():
+	response = requests.get("https://otog.cf/api/contest")
+	if response.status_code != 200:
+		return 999999999999999999999999
+	Con = response.json()
+
+	Contest_Time = 999999999999999999999999;
+
+	for cc in Con:
+		if cc['time_start'] < Contest_Time:
+			Contest_Time = cc['time_start']
+	return Contest_Time
+
+def Get_Incoming_Contest_End():
+	response = requests.get("https://otog.cf/api/contest")
+	if response.status_code != 200:
+		return 999999999999999999999999
+	Con = response.json()
+
+	Contest_Time = 999999999999999999999999;
+	Contest_End = 999999999999999999999999;
+
+	for cc in Con:
+		if cc['time_start'] < Contest_Time:
+			Contest_Time = cc['time_start']
+			Contest_End = cc['time_end']
+	return Contest_End
+
+def Get_Incoming_Contest_Name():
+	response = requests.get("https://otog.cf/api/contest")
+	if response.status_code != 200:
+		return 999999999999999999999999
+	Con = response.json()
+
+	Contest_Time = 999999999999999999999999;
+	Contest_NAMAE = "";
+
+	for cc in Con:
+		if cc['time_start'] < Contest_Time:
+			Contest_Time = cc['time_start']
+			Contest_NAMAE = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
+	return Contest_NAMAE
 
 def Get_Incoming_Contest():
 	response = requests.get("https://otog.cf/api/contest")
 	if response.status_code != 200:
 		return "เว็ปบึ้มง่าาาาาา"
-	Con = response.json()[0]
-	Contest_Time = Con['time_start']
+	Con = response.json()
+	if len(Con) == 0:
+		return "ไม่มีการแข่งจ้าา วันนี้นอนได้\nอนาคตอาจจะมี"
+
+	Contest_Time = Get_Incoming_Contest_Start();
+	Contest_namae = Get_Incoming_Contest_Name()
+	Contest_End = Get_Incoming_Contest_End();
+
+	for cc in Con:
+		if cc['time_start'] < Contest_Time:
+			Contest_Time = cc['time_start']
+			Contest_namae = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
+			Contest_End = cc['time_end']
+
+
+
 	Now_Time = int(time.time())
 	Delta = Contest_Time - Now_Time
 
@@ -87,10 +145,10 @@ def Get_Incoming_Contest():
 		else:
 			Ap_Time = "ไม่ถึงนาที! เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม"
 
-		return "จะมีคอนเทสที่`" + str(Con['idContest']) + "`(ไม่มีชื่องะ) ในอีก `" + Ap_Time + "`" + Str_Time
+		return "จะมีคอนเทสที่" + Contest_namae +"ในอีก `" + Ap_Time + "`" + Str_Time
 
 	else:
-		if Now_Time < Con['time_end'] :
+		if Now_Time < Contest_End :
 			return "{0.author.mention}" + " ไอ้นี่มันอู้การแข่งคร๊าาาาบ\nเขาแข่งกันแล้วววว"
 		else:
 			return "ไม่มีการแข่งจ้าา วันนี้นอนได้\nอนาคตอาจจะมี"
@@ -262,15 +320,78 @@ class MyClient(discord.Client):
 				await self.Reload_Question()
 		self.sSave()
 
+	async def Content_Announcement(self):
+		await self.wait_until_ready()
+		st = 0
+		CALL = 60*5
+		channel = client.get_channel(691618323468779532)
+		Con_Start = 999999999999999999999999
+		Con_End = 999999999999999999999999
+		Con_Namae = ""
+		while True:
+			Now_Time = int(time.time())
+			if CALL == 60*5:
+				Con_Start = Get_Incoming_Contest_Start()
+				Con_Namae = Get_Incoming_Contest_Name()
+				CALL = 0
+
+
+			if Con_Start != 999999999999999999999999:
+				if Now_Time > Con_Start:
+					if Con_End != 999999999999999999999999 :
+						if Now_Time < Con_End:
+							await client.change_presence(activity=discord.Game(name='กำลังทำคอนเทสจ้าา help()'))
+				else:
+					await client.change_presence(activity=discord.Game(name='รอทำคอนเทส help()'))
+			else:
+				await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆ help()'))
+
+			if st >= 7:
+				st += 1
+			if st == 12:
+				st = 0
+
+			if Con_Start - Now_Time < 0:
+
+				if st < 6:
+					st = 6
+					await channel.send("Contest เริ่มแว้ววว ขอให้ทุกๆคนโชคดีครับ")
+					Con_End = Get_Incoming_Contest_End()
+
+				elif Con_End - Now_Time < -1 and st < 7:
+					await channel.send("TIME'S UP\nหมดเวลาแล้วครับ\nยกมือขึ้นครับ")
+					st = 7
+
+			elif Con_Start - Now_Time < 60 and st < 5:
+				st = 5
+				await channel.send('ทุกๆคนน\nอีกไม่ถึงนาทีจะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
+			elif Con_Start - Now_Time <= 60*10 and st < 4:
+				st = 4
+				await channel.send('ทุกๆคนน\nอีก `10 นาที` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
+			elif Con_Start - Now_Time <= 60*60 and st < 3:
+				st = 3
+				await channel.send('ทุกๆคนน\nอีก `1 ชั่วโมง` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
+			elif Con_Start - Now_Time <= 60*60*24 and st < 2:
+				st = 2
+				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Con_Namae+" น้าาานอนเล่นได้วันนี้")
+			elif Con_Start - Now_Time <= 60*60*24*2 and st < 1:
+				st = 1
+				await channel.send('ทุกๆคนน\nอีก `2 วัน` จะมีคอนเทส '+Con_Namae+" น้าาานอนเล่นได้วันนี้")
+
+			CALL += 1
+
+			await asyncio.sleep(1)
 
 	async def on_ready(self):
 		print('Logged in as')
 		print(self.user.name)
 		print(self.user.id)
 		print('------')
-		channel = client.get_channel(691644349758308423)
-		await channel.send('Bot is now online')
-		await client.change_presence(activity=discord.Game(name='รอทำคอนเทส help()'))
+		if DEB =="":
+			channel = client.get_channel(691644349758308423)
+			await channel.send('Bot is now online')
+
+
 		self.lLoad()
 
 
@@ -466,11 +587,11 @@ class MyClient(discord.Client):
 
 			if message.content.startswith(DEB+'user_life()'):
 				await message.channel.send(Get_User_Ongoing())
-			
+
 			if message.content.startswith(DEB+'shutdown()'):
 				channel = client.get_channel(691644349758308423)
 				await channel.send('Bot is now shutting down')
-				exit(1)
+				exit(0)
 
 			if message.content.startswith(DEB+'ann()'):
 				Mes_Str = message.content[len(DEB+'ann()')+1:]
@@ -651,5 +772,7 @@ class MyClient(discord.Client):
 		channel = client.get_channel(691618323468779532)
 		await channel.send(Con)
 
+
 client = MyClient()
+client.loop.create_task(client.Content_Announcement())
 client.run(TOKEN)
