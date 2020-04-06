@@ -10,6 +10,8 @@ from random import randint
 from urllib.request import Request, urlopen
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
+INF = 999999999999999999999999
+
 DEB = ""#Before Command
 VER = "B04"
 
@@ -36,6 +38,11 @@ def Count_Today_Task():
 	i += 272;
 	for j in range(0,10):
 		if webpage[i+j] == '<':
+			today_task = int(webpage[i:i+j])
+			if today_task == 0:
+				return "วันนี้ไม่มี\n**แต่ก็ไปทำข้อที่เหลือด้วย!!!**"
+			else:
+				return 'วันนี้มีโจทย์ใหม่ '+ Count_Today_Task() +" ข้อ\nไปทำด้วย"
 			return webpage[i:i+j]
 	return "??"
 
@@ -66,68 +73,45 @@ def Get_Random_Text_forHello():
     Words = ["สวัสดีเจ้า","สวัสดีจ้า","สวัสดีครับ","สวัสดีค่ะ","ສະບາຍດີ","Annyeonghaseyo","Kon'nichiwa","Hello","привет!","ว่าไง",";w;?","Meow Meooww?",":wave:","https://giphy.com/gifs/capoo-halloween-3ov9k0OmfNYeLdK4gg","Nǐ hǎo"]
     return Words[randint(0,len(Words)-1)] + " {0.author.mention}"
 
-def Get_Incoming_Contest_Start():
+Contest_Time = INF
+Contest_namae = "??"
+Contest_End = INF
+
+TimeTick = 0
+
+def Reload_Incoming_Contest():
+	global Contest_Time
+	global Contest_namae
+	global Contest_End
+	global TimeTick
+	TimeTick = 0
 	response = requests.get("https://otog.cf/api/contest")
 	if response.status_code != 200:
-		return 999999999999999999999999
+		Contest_Time = INF
+		Contest_namae = "??"
+		Contest_End = INF
 	Con = response.json()
 
-	Contest_Time = 999999999999999999999999;
+	if len(Con) == 0:
+		Contest_namae = "!!None!!"
 
 	for cc in Con:
 		if cc['time_start'] < Contest_Time:
 			Contest_Time = cc['time_start']
-	return Contest_Time
-
-def Get_Incoming_Contest_End():
-	response = requests.get("https://otog.cf/api/contest")
-	if response.status_code != 200:
-		return 999999999999999999999999
-	Con = response.json()
-
-	Contest_Time = 999999999999999999999999;
-	Contest_End = 999999999999999999999999;
-
-	for cc in Con:
-		if cc['time_start'] < Contest_Time:
-			Contest_Time = cc['time_start']
-			Contest_End = cc['time_end']
-	return Contest_End
-
-def Get_Incoming_Contest_Name():
-	response = requests.get("https://otog.cf/api/contest")
-	if response.status_code != 200:
-		return 999999999999999999999999
-	Con = response.json()
-
-	Contest_Time = 999999999999999999999999;
-	Contest_NAMAE = "";
-
-	for cc in Con:
-		if cc['time_start'] < Contest_Time:
-			Contest_Time = cc['time_start']
-			Contest_NAMAE = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
-	return Contest_NAMAE
+			Contest_End = cc['time_start']
+			Contest_namae = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
 
 def Get_Incoming_Contest():
-	response = requests.get("https://otog.cf/api/contest")
-	if response.status_code != 200:
-		return "เว็ปบึ้มง่าาาาาา"
-	Con = response.json()
-	if len(Con) == 0:
+	global Contest_Time
+	global Contest_namae
+	global Contest_End
+	global TimeTick
+	Reload_Incoming_Contest()
+
+	if Contest_namae == "!!None!!":
 		return "ไม่มีการแข่งจ้าา วันนี้นอนได้\nอนาคตอาจจะมี"
-
-	Contest_Time = Get_Incoming_Contest_Start();
-	Contest_namae = Get_Incoming_Contest_Name()
-	Contest_End = Get_Incoming_Contest_End();
-
-	for cc in Con:
-		if cc['time_start'] < Contest_Time:
-			Contest_Time = cc['time_start']
-			Contest_namae = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
-			Contest_End = cc['time_end']
-
-
+	elif Contest_Time == INF:
+		return "เว็ปบึ้มง่าาาาาา"
 
 	Now_Time = int(time.time())
 	Delta = Contest_Time - Now_Time
@@ -243,6 +227,10 @@ class MyClient(discord.Client):
 
 	global Question_List
 	global Question_User
+	global Contest_Time
+	global Contest_namae
+	global Contest_End
+	global TimeTick
 
 	def sSave(self):
 		ddata = {
@@ -321,25 +309,29 @@ class MyClient(discord.Client):
 		self.sSave()
 
 	async def Content_Announcement(self):
+
+		global Contest_Time
+		global Contest_namae
+		global Contest_End
+		global TimeTick
+
+
 		await self.wait_until_ready()
+		Reload_Incoming_Contest()
 		st = 0
-		CALL = 60*5
 		channel = client.get_channel(691618323468779532)
-		Con_Start = 999999999999999999999999
-		Con_End = 999999999999999999999999
-		Con_Namae = ""
 		while True:
+
 			Now_Time = int(time.time())
-			if CALL == 60*5:
-				Con_Start = Get_Incoming_Contest_Start()
-				Con_Namae = Get_Incoming_Contest_Name()
-				CALL = 0
+			if TimeTick == 60*30:
+				TimeTick = 0
+				Reload_Incoming_Contest()
 
 
-			if Con_Start != 999999999999999999999999:
-				if Now_Time > Con_Start:
-					if Con_End != 999999999999999999999999 :
-						if Now_Time < Con_End:
+			if Contest_Time != INF:
+				if Now_Time > Contest_Time:
+					if Contest_End != INF :
+						if Now_Time < Contest_End:
 							await client.change_presence(activity=discord.Game(name='กำลังทำคอนเทสจ้าา help()'))
 				else:
 					await client.change_presence(activity=discord.Game(name='รอทำคอนเทส help()'))
@@ -351,34 +343,33 @@ class MyClient(discord.Client):
 			if st == 12:
 				st = 0
 
-			if Con_Start - Now_Time < 0:
+			if Contest_Time - Now_Time < 0:
 
 				if st < 6:
 					st = 6
 					await channel.send("Contest เริ่มแว้ววว ขอให้ทุกๆคนโชคดีครับ")
-					Con_End = Get_Incoming_Contest_End()
 
-				elif Con_End - Now_Time < -1 and st < 7:
-					await channel.send("TIME'S UP\nหมดเวลาแล้วครับ\nยกมือขึ้นครับ")
+				elif Contest_End - Now_Time < -1 and st < 7:
+					await channel.send("TIME'S UP\nหมดเวลาแล้วครับ\nยกมือขึ้นครับ!!!")
 					st = 7
 
-			elif Con_Start - Now_Time < 60 and st < 5:
+			elif Contest_Time - Now_Time < 60 and st < 5:
 				st = 5
 				await channel.send('ทุกๆคนน\nอีกไม่ถึงนาทีจะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Con_Start - Now_Time <= 60*10 and st < 4:
+			elif Contest_Time - Now_Time <= 60*10 and st < 4:
 				st = 4
 				await channel.send('ทุกๆคนน\nอีก `10 นาที` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Con_Start - Now_Time <= 60*60 and st < 3:
+			elif Contest_Time - Now_Time <= 60*60 and st < 3:
 				st = 3
 				await channel.send('ทุกๆคนน\nอีก `1 ชั่วโมง` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Con_Start - Now_Time <= 60*60*24 and st < 2:
+			elif Contest_Time - Now_Time <= 60*60*24 and st < 2:
 				st = 2
 				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Con_Namae+" น้าาานอนเล่นได้วันนี้")
-			elif Con_Start - Now_Time <= 60*60*24*2 and st < 1:
+			elif Contest_Time - Now_Time <= 60*60*24*2 and st < 1:
 				st = 1
 				await channel.send('ทุกๆคนน\nอีก `2 วัน` จะมีคอนเทส '+Con_Namae+" น้าาานอนเล่นได้วันนี้")
 
-			CALL += 1
+			TimeTick+= 1
 
 			await asyncio.sleep(1)
 
@@ -428,12 +419,14 @@ class MyClient(discord.Client):
 			em.add_field(name = "contest()",value = "คอนเทสที่กำลังจะมาถึง")
 			em.add_field(name = "task()",value = "จำนวนโจทย์ตอนนี้")
 			em.add_field(name = "today_task()",value = "โจทย์ใหม่วันนี้")
+			em.add_field(name = "ranking()",value = "คำสั่งไว้ขิงกัน")
 			em.add_field(name = "question(<id>) <คำถาม>",value = "ถามคำถามเกี่ยวกับโจทย์ข้อที่ <id>\nและ<คำถาม>ควรตอบเป็น Yes/No(ใช่/ไม่ใช่)")
+			em.add_field(name = "[OtogRadio] <ชื่อเพลง>",value = "ขอเพลงได้ๆๆ")
 
 			await message.channel.send(content = None ,embed = em)
 
 			if Is_Admin:
-				em = discord.Embed(title = "สิ่งที่น้อมแอดมินทำได้",description = "แค่ในนี้เท่านั้น")
+				em = discord.Embed(title = "สิ่งที่แอดมินทำได้",description = "แค่ในนี้เท่านั้น")
 				em.add_field(name = "user_life()",value = "ดูว่าใครมีชีวิตอยู่บ้าง")
 				em.add_field(name = "ann() <Text>",value = "ประกาศๆๆๆๆ")
 				em.add_field(name = "say(<Channel_ID>) <Text>",value = "ส่ง <Text> ไปยังห้อง <Channel_ID>")
@@ -441,11 +434,16 @@ class MyClient(discord.Client):
 				em.add_field(name = "q_answer(<id>) <text>",value = "ตอบคำถามที่ <id> โดยคำถามจะหายด้วย")
 				em.add_field(name = "q_remove(<id>)",value = "ลบคำถามที่ <id>")
 				em.add_field(name = "q_clear()",value = "clear คำถามทั้งหมด(ต้องแน่ใจจริงๆว่าจะทำ)")
+				em.add_field(name = "shutdown()",value = "ชื่อก็บอกอยู่แล้ว")
 				await message.channel.send(content = None ,embed = em)
 
 
 		if message.content.startswith(DEB+'test()'):
 			await message.channel.send('ยังมีชีวิตอยู่เด้อ')
+
+		if message.content.startswith(DEB+'[OtogRadio] '):
+			Mes_Str = message.content[len(DEB+'[OtogRadio] '):]
+			await message.channel.send(':microphone:กำลังเปิด `'+Mes_Str+"`")
 
 		if message.content.startswith(DEB+'contest()'):
 			await message.channel.send(Get_Incoming_Contest().format(message))
@@ -455,8 +453,7 @@ class MyClient(discord.Client):
 			await message.channel.send('ไปทำด้วย!!!')
 
 		if message.content.startswith(DEB+'today_task()'):
-			await message.channel.send('มีโจทย์ใหม่ '+ Count_Today_Task() +" ข้อ")
-			await message.channel.send('ไปทำด้วย!!!')
+			await message.channel.send(Count_Today_Task())
 
 		if message.content.startswith(DEB+'ranking()'):
 			await message.channel.send(Get_Top10_User())
