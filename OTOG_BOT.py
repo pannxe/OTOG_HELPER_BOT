@@ -205,6 +205,14 @@ def Get_Problem_Name(id):
 Question_List = []
 Question_User = {}
 
+
+def Is_Time_Passed_In_Range(Des,Now,Range):
+	if Range == 0:
+		return (Now>=Des)
+	else
+		return (Now>=Des) and (Now<=Des-Range)
+
+
 class MyClient(discord.Client):
 
 	global Question_List
@@ -325,29 +333,30 @@ class MyClient(discord.Client):
 			if st == 12:
 				st = 0
 
-			if Contest_Time - Now_Time < 0:
+			if Is_Time_Passed_In_Range(Contest_Time,Now_Time,0):
 
 				if st < 6:
 					st = 6
 					await channel.send("Contest เริ่มแว้ววว ขอให้ทุกๆคนโชคดีครับ")
 
-				elif Contest_End - Now_Time < -1 and st < 7:
+				elif Is_Time_Passed_In_Range(Contest_End,Now_Time,10) and st < 7:
 					await channel.send("TIME'S UP\nหมดเวลาแล้วครับ\nยกมือขึ้นครับ!!!")
 					st = 7
+					Reload_Incoming_Contest()
 
-			elif Contest_Time - Now_Time < 60 and st < 5:
+			elif Is_Time_Passed_In_Range(Contest_Time-60,Now_Time,10) and st < 5:
 				st = 5
 				await channel.send('ทุกๆคนน\nอีกไม่ถึงนาทีจะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Contest_Time - Now_Time <= 60*10 and st < 4:
+			elif Is_Time_Passed_In_Range(Contest_Time-60*10,Now_Time,10) and st < 4:
 				st = 4
 				await channel.send('ทุกๆคนน\nอีก `10 นาที` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Contest_Time - Now_Time <= 60*60 and st < 3:
+			elif Is_Time_Passed_In_Range(Contest_Time-60*60,Now_Time,10) and st < 3:
 				st = 3
 				await channel.send('ทุกๆคนน\nอีก `1 ชั่วโมง` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Contest_Time - Now_Time <= 60*60*24 and st < 2:
+			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24,Now_Time,10) and st < 2:
 				st = 2
 				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Con_Namae+" น้าาานอนเล่นได้วันนี้")
-			elif Contest_Time - Now_Time <= 60*60*24*2 and st < 1:
+			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24*2,Now_Time,10) and st < 1:
 				st = 1
 				await channel.send('ทุกๆคนน\nอีก `2 วัน` จะมีคอนเทส '+Con_Namae+" น้าาานอนเล่นได้วันนี้")
 
