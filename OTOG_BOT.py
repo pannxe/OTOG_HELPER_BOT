@@ -8,6 +8,12 @@ import asyncio
 from itertools import cycle
 from random import randint
 from urllib.request import Request, urlopen
+import Pat1Grader
+
+PATH = os.path.realpath(__file__)
+while PATH[-1] != "\\":
+	PATH = PATH[:-1]
+
 req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
 INF = 999999999999999999999999
@@ -66,6 +72,7 @@ def Reload_Incoming_Contest():
 		Contest_Time = INF
 		Contest_namae = "??"
 		Contest_End = INF
+		return
 	Con = response.json()
 
 	if len(Con) == 0:
@@ -430,16 +437,48 @@ class MyClient(discord.Client):
 				em.add_field(name = "q_answer(<id>) <text>",value = "ตอบคำถามที่ <id> โดยคำถามจะหายด้วย")
 				em.add_field(name = "q_remove(<id>)",value = "ลบคำถามที่ <id>")
 				em.add_field(name = "q_clear()",value = "clear คำถามทั้งหมด(ต้องแน่ใจจริงๆว่าจะทำ)")
+				em.add_field(name = "test()",value = "ดูว่าน้องยังมีชีวิตอยู่ไหม")
+				em.add_field(name = "test_Verify()\\n<Code in C/C++>",value = "ทดสอบว่า Grader แมวๆยังใช้ได้ไหม")
 				em.add_field(name = "shutdown()",value = "ชื่อก็บอกอยู่แล้ว")
 				await message.channel.send(content = None ,embed = em)
 
 
-		if message.content.startswith(DEB+'test()'):
-			await message.channel.send('ยังมีชีวิตอยู่เด้อ')
-
 		if message.content.startswith(DEB+'[OtogRadio] '):
 			Mes_Str = message.content[len(DEB+'[OtogRadio] '):]
 			await message.channel.send(':microphone:กำลังเปิด `'+Mes_Str+"`")
+
+		if message.content.startswith(DEB+'Verify()'):
+			MESS = message
+			namae = str(message.author.id)
+			CODO = message.content[len(DEB+'Verify()')+1:]
+			n_FILE = open(namae+".cpp","w")
+			n_FILE.write(CODO)
+			n_FILE.close()
+
+			await message.delete()
+			await MESS.author.send("กำลังตรวจ")
+
+			Verdict = Pat1Grader.Grading(namae)
+
+			if Verdict.startswith("อ่อนหัด!!"):
+				await MESS.author.send(Verdict)
+			else:
+				PERFECT = True
+				for c in Verdict:
+					if c == "T" or c == "-" or c == "X":
+						PERFECT = False
+						break
+				if PERFECT:
+					ALL_ROLE = MESS.guild.roles
+					OTOGER = discord.utils.get(ALL_ROLE,name = "OTOGer")
+					await MESS.author.send("ตรวจมาแล้วได้\n"+Verdict+"\nยินดีต้อนรับเข้าสู่เซิฟแห่งความฮา...OTOG")
+					await message.author.edit(roles = [OTOGER])
+				else:
+					await MESS.author.send("ตรวจมาแล้วได้\n"+Verdict+"\nแต่ก็ยังไม่ผ่านอ่ะนะ ลองใหม่นะหึหึ")
+
+
+
+
 
 		if message.content.startswith(DEB+'contest()'):
 			await message.channel.send(Get_Incoming_Contest().format(message))
@@ -577,6 +616,9 @@ class MyClient(discord.Client):
 
 		##Admin Command
 		if Is_Admin:
+
+			if message.content.startswith(DEB+'test()'):
+				await message.channel.send('ยังมีชีวิตอยู่เด้อ')
 
 			if message.content.startswith(DEB+'user_life()'):
 				await message.channel.send(Get_User_Ongoing())
@@ -743,13 +785,31 @@ class MyClient(discord.Client):
 				else:
 					await message.channel.send("ไม่มีใครถามมางะ เหงาจุง")
 
+			if message.content.startswith(DEB+'test_Verify()'):
+				namae = str(message.author.id)
+				CODO = message.content[len(DEB+'test_Verify()')+1:]
+				n_FILE = open(namae+".cpp","w")
+				n_FILE.write(CODO)
+				n_FILE.close()
 
+				Verdict = Pat1Grader.Grading(namae)
+
+				if Verdict.startswith("อ่อนหัด!!"):
+					await message.channel.send(Verdict)
+				else:
+					await message.channel.send(Verdict)
 
 
 	async def on_guild_join(guild):
 		await guild.system_channel.send("กราบสวัสดีพ่อแม่พี่น้องครับ")
 
 	async def on_member_join(self, member):
+		MESS = message
+		ALL_ROLE = member.guild.roles
+
+		role = discord.utils.get(ALL_ROLE,name = "return 0;")
+		await member.edit(roles = [role])
+
 		guild = member.guild
 		if guild.system_channel is not None:
 			to_send = 'สวัสดีเจ้า {0.mention} สู่ {1.name}!'.format(member, guild)
