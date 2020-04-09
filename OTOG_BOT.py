@@ -451,7 +451,7 @@ class MyClient(discord.Client):
 			MESS = message
 			namae = str(message.author.id)
 			CODO = message.content[len(DEB+'Verify()')+1:]
-			n_FILE = open(namae+".cpp","w")
+			n_FILE = open("VerifyCode\\"+namae+".cpp","w")
 			n_FILE.write(CODO)
 			n_FILE.close()
 
@@ -631,10 +631,12 @@ class MyClient(discord.Client):
 			if message.content.startswith(DEB+'ann()'):
 				Mes_Str = message.content[len(DEB+'ann()')+1:]
 				channel = client.get_channel(691575760674226217)
+				await message.delete()
 				await channel.send("@everyone\n"+Mes_Str)
 
 			if message.content.startswith(DEB+'say('):
 				Str_Content = message.content
+				await message.delete()
 				#Say(4412) ไอ้นี้มันอู้งานครับบ
 				Id_channel = Str_Content.find("(");
 
@@ -788,9 +790,10 @@ class MyClient(discord.Client):
 			if message.content.startswith(DEB+'test_Verify()'):
 				namae = str(message.author.id)
 				CODO = message.content[len(DEB+'test_Verify()')+1:]
-				n_FILE = open(namae+".cpp","w")
+				n_FILE = open("VerifyCode\\"+namae+".cpp","w")
 				n_FILE.write(CODO)
 				n_FILE.close()
+				await message.channel.send("รอแป๊ป...")
 
 				Verdict = Pat1Grader.Grading(namae)
 
