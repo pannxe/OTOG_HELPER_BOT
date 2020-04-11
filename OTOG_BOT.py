@@ -19,7 +19,7 @@ req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 INF = 999999999999999999999999
 
 DEB = ""#Before Command
-VER = "B04"
+VER = "B05"
 
 TOKEN = input("Tell me your TOKEN :) :")
 if TOKEN == "":
@@ -33,6 +33,15 @@ def Count_All_Task():
 	Con = response.json()["allProblem"]
 
 	return str(Con)
+
+def Getname(Client,Id,Guild = None):
+	if Guild== None:
+		return Client.get_user(int(Id)).name
+	else:
+		Mininame = Guild.get_member(int(Id)).nick
+		if Mininame != Client.get_user(int(Id)).name:
+			return Client.get_user(int(Id)).name+"(AKA. "+Mininame+")"
+		return Mininame
 
 def Count_Today_Task():
 	return "??"
@@ -211,7 +220,7 @@ def Get_Problem_Name(id):
 		return Content[ANS]["name"]
 Question_List = []
 Question_User = {}
-
+Verify_User = {}
 
 def Is_Time_Passed_In_Range(Des,Now,Range):
 	if Range == 0:
@@ -224,6 +233,7 @@ class MyClient(discord.Client):
 
 	global Question_List
 	global Question_User
+	global Verify_User
 	global Contest_Time
 	global Contest_namae
 	global Contest_End
@@ -232,19 +242,22 @@ class MyClient(discord.Client):
 	def sSave(self):
 		ddata = {
 			"Question_List":Question_List,
-			"Question_User":Question_User
+			"Question_User":Question_User,
+			"Verify_User":Verify_User
 		}
-		with open("Save_Data"+VER+".otog", 'w') as outfile:
+		with open("All_DATA/Save_Data"+VER+".otog", 'w') as outfile:
 			json.dump(ddata, outfile)
 
 	def lLoad(self):
 		global Question_User
 		global Question_List
-		if os.path.isfile("Save_Data"+VER+".otog"):
-			with open("Save_Data"+VER+".otog") as json_file:
+		global Verify_User
+		if os.path.isfile("All_DATA/Save_Data"+VER+".otog"):
+			with open("All_DATA/Save_Data"+VER+".otog") as json_file:
 				ddata = json.load(json_file)
 				Question_List = ddata["Question_List"]
 				Question_User = ddata["Question_User"]
+				Verify_User = ddata["Verify_User"]
 
 
 	def Mes_To_ID(self,Mes):
@@ -392,6 +405,7 @@ class MyClient(discord.Client):
 	async def on_message(self, message):
 		global Question_List
 		global Question_User
+		global Verify_User
 
         # we do not want the bot to reply to itself
 		if message.author.id == self.user.id:
@@ -439,6 +453,9 @@ class MyClient(discord.Client):
 				em.add_field(name = "q_clear()",value = "clear คำถามทั้งหมด(ต้องแน่ใจจริงๆว่าจะทำ)")
 				em.add_field(name = "test()",value = "ดูว่าน้องยังมีชีวิตอยู่ไหม")
 				em.add_field(name = "test_Verify()\\n<Code in C/C++>",value = "ทดสอบว่า Grader แมวๆยังใช้ได้ไหม")
+				em.add_field(name = "check_Verify()",value = "ดูว่ามีใครมา Verify ไหม")
+				em.add_field(name = "Watch_Code_Verify(<id>)",value = "ดู Code ของ <id>")
+				em.add_field(name = "test_Verify_Delete()",value = "ลบ Code ของตัวเอง")
 				em.add_field(name = "shutdown()",value = "ชื่อก็บอกอยู่แล้ว")
 				await message.channel.send(content = None ,embed = em)
 
@@ -448,8 +465,22 @@ class MyClient(discord.Client):
 			await message.channel.send(':microphone:กำลังเปิด `'+Mes_Str+"`")
 
 		if message.content.startswith(DEB+'Verify()'):
+
+
+
+			if hasattr(message.author, 'roles'):
+				for r in message.author.roles:
+					if str(r) != "return 0;":
+						return
+			else:
+				return
 			MESS = message
 			namae = str(message.author.id)
+
+			if namae in Verify_User and Verify_User[namae] == 5:
+				await MESS.author.send("ส่งมาก็ไม่ตรวจครับ หยิ่ง...\nลองติดต่อรุ่นพี่เอาครับ:)")
+				return
+
 			CODO = message.content[len(DEB+'Verify()')+1:]
 			n_FILE = open("VerifyCode\\"+namae+".cpp","w")
 			n_FILE.write(CODO)
@@ -473,10 +504,23 @@ class MyClient(discord.Client):
 					OTOGER = discord.utils.get(ALL_ROLE,name = "OTOGer")
 					await MESS.author.send("ตรวจมาแล้วได้\n"+Verdict+"\nยินดีต้อนรับเข้าสู่เซิฟแห่งความฮา...OTOG")
 					await message.author.edit(roles = [OTOGER])
+					os.remove("VerifyCode\\"+namae+".cpp")
+					Verify_User.pop(namae, None)
+
+					return
 				else:
 					await MESS.author.send("ตรวจมาแล้วได้\n"+Verdict+"\nแต่ก็ยังไม่ผ่านอ่ะนะ ลองใหม่นะหึหึ")
 
+			if namae in Verify_User:
+				Verify_User[namae]+=1
+			else:
+				Verify_User[namae] = 1
 
+			if Verify_User[namae] == 5:
+				await MESS.author.send("เจ้าหมดโอกาสแล้ว...\nลองติดต่อรุ่นพี่เอาครับ")
+			else:
+				await MESS.author.send("ตอนนี้เหลือโอกาสเพียง **"+str(5-Verify_User[namae])+"** ครั้งเท่านั้น")
+			self.sSave()
 
 
 
@@ -801,6 +845,44 @@ class MyClient(discord.Client):
 					await message.channel.send(Verdict)
 				else:
 					await message.channel.send(Verdict)
+
+			if message.content.startswith(DEB+'check_Verify()'):
+				if len(Verify_User.keys()) != 0:
+					message.channel.send("ตอนนี้มี "+len(Verify_User.keys())+" ที่กำลังอยู่ในบททดสอบ")
+					ALL_Verify = ""
+
+					for USER in Verify_User.keys():#get_user
+						ALL_Verify += "{ID}({NAME}) ได้ลองไป {times} ครั้งแล้ว\n".format(ID = USER,NAME = Getname(self,USER,message.guild),times = Verify_User[USER])
+
+					await message.channel.send(ALL_Verify)
+
+				else:
+					await message.channel.send("ไม่มีคนมา Verify งะ")
+
+			if message.content.startswith(DEB+'Watch_Code_Verify('):
+
+				Watch_ID = len(DEB+'Watch_Code_Verify(')
+				for i in range(1,100):
+					if message.content[Watch_ID+i] == ")":
+						Watch_ID = message.content[Watch_ID:Watch_ID+i]
+						break;
+
+				try:
+					F = open("VerifyCode\\"+Watch_ID+".cpp","r")
+					CODO = F.read()
+					F.close()
+				except:
+					await message.channel.send("หาของ `"+Getname(self,Watch_ID,message.guild)+"` ไม่เจองะ")
+					return
+
+				await message.channel.send(Getname(self,Watch_ID,message.guild)+"'s CODE\n`"+CODO+"`")
+
+			if message.content.startswith(DEB+'test_Verify_Delete()'):
+				namae = str(message.author.id)
+				os.remove("VerifyCode\\"+namae+".cpp")
+				await message.channel.send("จัดการให้แล้ว")
+
+
 
 
 	async def on_guild_join(guild):
