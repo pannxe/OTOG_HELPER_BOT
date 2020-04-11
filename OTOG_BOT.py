@@ -505,6 +505,7 @@ class MyClient(discord.Client):
 					await MESS.author.send("ตรวจมาแล้วได้\n"+Verdict+"\nยินดีต้อนรับเข้าสู่เซิฟแห่งความฮา...OTOG")
 					await message.author.edit(roles = [OTOGER])
 					os.remove("VerifyCode\\"+namae+".cpp")
+					os.remove("VerifyCode\\"+namae+"RUN.exe")
 					Verify_User.pop(namae, None)
 
 					return
@@ -880,6 +881,7 @@ class MyClient(discord.Client):
 			if message.content.startswith(DEB+'test_Verify_Delete()'):
 				namae = str(message.author.id)
 				os.remove("VerifyCode\\"+namae+".cpp")
+				os.remove("VerifyCode\\"+namae+"RUN.exe")
 				await message.channel.send("จัดการให้แล้ว")
 
 
