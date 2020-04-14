@@ -39,9 +39,9 @@ def Getname(Client,Id,Guild = None):
 		return Client.get_user(int(Id)).name
 	else:
 		Mininame = Guild.get_member(int(Id)).nick
-		if Mininame != Client.get_user(int(Id)).name:
+		if Mininame != None:
 			return Client.get_user(int(Id)).name+"(AKA. "+Mininame+")"
-		return Mininame
+		return Client.get_user(int(Id)).name
 
 def Count_Today_Task():
 	return "??"
@@ -245,6 +245,10 @@ class MyClient(discord.Client):
 			"Question_User":Question_User,
 			"Verify_User":Verify_User
 		}
+		try:
+			os.makedirs("All_DATA")
+		except:
+			print("")
 		with open("All_DATA/Save_Data"+VER+".otog", 'w') as outfile:
 			json.dump(ddata, outfile)
 
@@ -466,28 +470,41 @@ class MyClient(discord.Client):
 
 		if message.content.startswith(DEB+'Verify()'):
 
-
-
+			Is_RETURN0_Role = False
 			if hasattr(message.author, 'roles'):
 				for r in message.author.roles:
-					if str(r) != "return 0;":
-						return
+					Is_RETURN0_Role = Is_RETURN0_Role or (str(r) == "return 0;")
+					print(str(r))
+					print(Is_RETURN0_Role)
 			else:
 				return
+
+			if not Is_RETURN0_Role:
+				await message.delete()
+				return
+
 			MESS = message
 			namae = str(message.author.id)
 
 			if namae in Verify_User and Verify_User[namae] == 5:
 				await MESS.author.send("ส่งมาก็ไม่ตรวจครับ หยิ่ง...\nลองติดต่อรุ่นพี่เอาครับ:)")
 				return
-
-			CODO = message.content[len(DEB+'Verify()')+1:]
+			try:
+				CODO = message.content[len(DEB+'Verify()')+1:]
+			except:
+				await message.delete()
+				await MESS.author.send("**ส่ง Code มาด้วยเซ่**\nไม่ส่งแล้วจะตรวจยังไงงงง")
+				return
+			if CODO == "":
+				await message.delete()
+				await MESS.author.send("**ส่ง Code มาด้วยเซ่**\nไม่ส่งแล้วจะตรวจยังไงงงง")
+				return
 			n_FILE = open("VerifyCode\\"+namae+".cpp","w")
 			n_FILE.write(CODO)
 			n_FILE.close()
 
 			await message.delete()
-			await MESS.author.send("กำลังตรวจ")
+			await MESS.author.send("กำลังตรวจ...\n"+CODO)
 
 			Verdict = Pat1Grader.Grading(namae)
 
@@ -849,11 +866,11 @@ class MyClient(discord.Client):
 
 			if message.content.startswith(DEB+'check_Verify()'):
 				if len(Verify_User.keys()) != 0:
-					message.channel.send("ตอนนี้มี "+len(Verify_User.keys())+" ที่กำลังอยู่ในบททดสอบ")
+					await message.channel.send("ตอนนี้มี `"+str(len(Verify_User.keys()))+"`ea ที่กำลังอยู่ในบททดสอบ")
 					ALL_Verify = ""
 
 					for USER in Verify_User.keys():#get_user
-						ALL_Verify += "{ID}({NAME}) ได้ลองไป {times} ครั้งแล้ว\n".format(ID = USER,NAME = Getname(self,USER,message.guild),times = Verify_User[USER])
+						ALL_Verify += "{ID}(`{NAME}`) ได้ลองไป `{times}` ครั้งแล้ว\n".format(ID = USER,NAME = Getname(self,USER,message.guild),times = Verify_User[USER])
 
 					await message.channel.send(ALL_Verify)
 
