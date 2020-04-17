@@ -21,6 +21,8 @@ INF = 999999999999999999999999
 DEB = ""#Before Command
 VER = "B05"
 
+IsStart = False
+
 TOKEN = input("Tell me your TOKEN :) :")
 if TOKEN == "":
 	print("WTF MANN")
@@ -238,6 +240,7 @@ class MyClient(discord.Client):
 	global Contest_namae
 	global Contest_End
 	global TimeTick
+	global IsStart
 
 	def sSave(self):
 		ddata = {
@@ -390,15 +393,17 @@ class MyClient(discord.Client):
 			await asyncio.sleep(1)
 
 	async def on_ready(self):
+		global IsStart
 		print('Logged in as')
 		print(self.user.name)
 		print(self.user.id)
 		print('------')
 
 		#AllowMen = client.AllowedMentions(everyone = True)
-		#print(type(AllowMen))
-
-		if DEB =="":
+		#print(type(AllowMen))//
+		self.loop.create_task(self.Content_Announcement())
+		if DEB =="" and not IsStart:
+			IsStart = True
 			channel = client.get_channel(691644349758308423)
 			await channel.send('Bot is now online')
 
@@ -931,5 +936,4 @@ class MyClient(discord.Client):
 
 
 client = MyClient()
-client.loop.create_task(client.Content_Announcement())
 client.run(TOKEN)
