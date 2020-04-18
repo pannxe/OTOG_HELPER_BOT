@@ -98,12 +98,12 @@ def Reload_Incoming_Contest():
 			Contest_namae = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
 
 def Second_To_Good_Str(sec):
-	if Delta > 60*60*24:
-		return str(Delta//(60*60*24)) + " วัน "
-	elif Delta > 60*60:
-		return str(Delta//(60*60)) + " ชั่วโมง " + str((Delta%(60*60))//60) + " นาที "
-	elif Delta > 60:
-		return str(Delta//60) + " นาที "
+	if sec > 60*60*24:
+		return str(sec//(60*60*24)) + " วัน "
+	elif sec > 60*60:
+		return str(sec//(60*60)) + " ชั่วโมง " + str((Delta%(60*60))//60) + " นาที "
+	elif sec > 60:
+		return str(sec//60) + " นาที "
 	else:
 		return "ไม่ถึงนาที!"
 
