@@ -101,7 +101,7 @@ def Second_To_Good_Str(sec):
 	if sec > 60*60*24:
 		return str(sec//(60*60*24)) + " วัน "
 	elif sec > 60*60:
-		return str(sec//(60*60)) + " ชั่วโมง " + str((Delta%(60*60))//60) + " นาที "
+		return str(sec//(60*60)) + " ชั่วโมง " + str((sec%(60*60))//60) + " นาที "
 	elif sec > 60:
 		return str(sec//60) + " นาที "
 	else:
@@ -228,7 +228,7 @@ def Is_Time_Passed_In_Range(Des,Now,Range):
 	if Range == 0:
 		return (Now>=Des)
 	else:
-		return (Now>=Des) and (Now<=Des-Range)
+		return (Now>=Des) and (Now<=Des+Range)
 
 
 class MyClient(discord.Client):
@@ -359,7 +359,7 @@ class MyClient(discord.Client):
 				st += 1
 			if st == 12:
 				st = 0
-
+			#print("Delta = "+ str(Contest_Time-Now_Time))
 			if Is_Time_Passed_In_Range(Contest_Time,Now_Time,0):
 
 				if st < 6:
@@ -380,7 +380,7 @@ class MyClient(discord.Client):
 			elif Is_Time_Passed_In_Range(Contest_Time-60*60,Now_Time,60*5) and st < 3:
 				st = 3
 				await channel.send('@everyone\nใน `1 ชั่วโมง` จะมีคอนเทส '+Contest_namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24,Now_Time,60*5) and st < 2:
+			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24,Now_Time,60*60) and st < 2:
 				st = 2
 				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Contest_namae+" น้าาานอนเล่นได้วันนี้")
 			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24*2,Now_Time,60*5) and st < 1:
