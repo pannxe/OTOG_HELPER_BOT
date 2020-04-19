@@ -336,7 +336,7 @@ class MyClient(discord.Client):
 		await self.wait_until_ready()
 		Reload_Incoming_Contest()
 		st = 0
-		channel = client.get_channel(691644349758308423)
+		channel = client.get_channel(691575760674226217)
 		while True:
 
 			Now_Time = int(time.time())
@@ -351,7 +351,7 @@ class MyClient(discord.Client):
 						if Now_Time < Contest_End:
 							await client.change_presence(activity=discord.Game(name='เหลือเวลา'+Second_To_Good_Str(Contest_End-Now_Time)+' help()'))
 				else:
-					await client.change_presence(activity=discord.Game(name='รอทำคอนเทส help()'))
+					await client.change_presence(activity=discord.Game(name='รอทำคอนเทส '+Contest_namae+' ในอีก '+Second_To_Good_Str(Contest_Time-Now_Time)+' help()'))
 			else:
 				await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆ help()'))
 
@@ -366,27 +366,27 @@ class MyClient(discord.Client):
 					st = 6
 					await channel.send("Contest เริ่มแว้ววว ขอให้ทุกๆคนโชคดีครับ")
 
-				elif Is_Time_Passed_In_Range(Contest_End,Now_Time,10) and st < 7:
+				elif Is_Time_Passed_In_Range(Contest_End,Now_Time,60*5) and st < 7:
 					await channel.send("@everyone **TIME'S UP!!**\nหมดเวลาแล้วครับ\nยกมือขึ้นครับ!!!")
 					st = 7
 					Reload_Incoming_Contest()
 
-			elif Is_Time_Passed_In_Range(Contest_Time-60,Now_Time,10) and st < 5:
+			elif Is_Time_Passed_In_Range(Contest_Time-60,Now_Time,60*5) and st < 5:
 				st = 5
-				await channel.send('@everyone\nอีกไม่ถึงนาทีจะมีคอนเทส '+Con_Namae+" ตั้งสติให้พร้อม")
-			elif Is_Time_Passed_In_Range(Contest_Time-60*10,Now_Time,10) and st < 4:
+				await channel.send('@everyone\nอีกไม่ถึงนาทีจะมีคอนเทส '+Contest_namae+" ตั้งสติให้พร้อม")
+			elif Is_Time_Passed_In_Range(Contest_Time-60*10,Now_Time,60*5) and st < 4:
 				st = 4
-				await channel.send('ทุกๆคนน\nอ `10 นาที` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมคีย์บอร์ดและ #include ให้พร้อม")
-			elif Is_Time_Passed_In_Range(Contest_Time-60*60,Now_Time,10) and st < 3:
+				await channel.send('ทุกๆคนน\nอ `10 นาที` จะมีคอนเทส '+Contest_namae+" น้าาา เตรียมคีย์บอร์ดและ #include ให้พร้อม")
+			elif Is_Time_Passed_In_Range(Contest_Time-60*60,Now_Time,60*5) and st < 3:
 				st = 3
-				await channel.send('@everyone\nใน `1 ชั่วโมง` จะมีคอนเทส '+Con_Namae+" น้าาา เตรียมตัวให้พร้อม")
-			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24,Now_Time,10) and st < 2:
+				await channel.send('@everyone\nใน `1 ชั่วโมง` จะมีคอนเทส '+Contest_namae+" น้าาา เตรียมตัวให้พร้อม")
+			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24,Now_Time,60*5) and st < 2:
 				st = 2
-				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Con_Namae+" น้าาานอนเล่นได้วันนี้")
-			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24*2,Now_Time,10) and st < 1:
+				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Contest_namae+" น้าาานอนเล่นได้วันนี้")
+			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24*2,Now_Time,60*5) and st < 1:
 				st = 1
 
-				await channel.send('@everyone\nอีก `2 วัน` จะมีคอนเทส '+Con_Namae+" อีกน๊าน สบายได้")
+				await channel.send('@everyone\nอีก `2 วัน` จะมีคอนเทส '+Contest_namae+" อีกน๊าน สบายได้")
 
 			TimeTick+= 1
 
