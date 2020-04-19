@@ -69,6 +69,7 @@ def Get_Random_Text_forHello():
 Contest_Time = INF
 Contest_namae = "??"
 Contest_End = INF
+Contest_Id = -1
 
 TimeTick = 0
 
@@ -76,6 +77,7 @@ def Reload_Incoming_Contest():
 	global Contest_Time
 	global Contest_namae
 	global Contest_End
+	global Contest_Id
 	global TimeTick
 	TimeTick = 0
 	response = requests.get("https://otog.cf/api/contest")
@@ -90,12 +92,14 @@ def Reload_Incoming_Contest():
 		Contest_namae = "!!None!!"
 		Contest_Time = INF
 		Contest_End = INF
+		Contest_Id = -1
 
 	for cc in Con:
 		if cc['time_start'] < Contest_Time:
 			Contest_Time = cc['time_start']
 			Contest_End = cc['time_end']
-			Contest_namae = "`" + str(cc['idContest']) + "`(หาชื่อไม่เจองะ)"
+			Contest_Id = cc['idContest']
+			Contest_namae = "`" + cc['name'] + "`"
 
 def Second_To_Good_Str(sec):
 	if sec > 60*60*24:
@@ -111,6 +115,7 @@ def Get_Incoming_Contest():
 	global Contest_Time
 	global Contest_namae
 	global Contest_End
+	global Contest_Id
 	global TimeTick
 	Reload_Incoming_Contest()
 
@@ -153,11 +158,6 @@ def Get_Top10_User():
 	Rank_Str += "อันดับต่อไป **อาจ เป็น คุณ**"
 	return Rank_Str
 
-def Get_Last_ContestID():
-	response = requests.get("https://otog.cf/api/contest/history")
-	if response.status_code != 200:
-		return None
-	return response.json()[-1]["idContest"]
 
 def Get_Problem_Name(id):
 	response = requests.get("https://otog.cf/api/problem")
@@ -177,43 +177,22 @@ def Get_Problem_Name(id):
 		else:
 			mak = mid-1
 
-	if Content[ANS]["id_Prob"] != id:
+	if Contest_Id != -1 and Content[ANS]["id_Prob"] != id:
 
-		Contest_api = Get_Last_ContestID()
-		Contest_api_new = requests.get("https://otog.cf/api/contest/"+str(Contest_api))
-		Contest_api_old = (requests.get("https://otog.cf/api/contest/history")).json()[-1]
+		Contest_api_new = requests.get("https://otog.cf/api/contest/"+str(Contest_Id))
 
 		if Contest_api_new.status_code != 200:
 			return "เว็ปบึ้มง่าาาาาา"
 
 		Now_Time = int(time.time())
-		if Now_Time <= Contest_api_old['time_end']:
+		if Now_Time <= Contest_api_new['timeEnd']:
 			#print(type(id),id,Contest_api['problems'][0])
-			if Now_Time < Contest_api_old['time_start'] :
-				return "NANI!?!?!?!?!?"
 			X = Contest_api_new['problem']
 
 			for iid in X:
-				iid = iid["id_Prob"]
-				if id ==iid:
+				if id ==iid["id_Prob"]:
 					#print("F")
-					ALL_P = requests.get("https://otog.cf/api/admin/problem")
-					if ALL_P.status_code != 200:
-						return "เว็ปบึ้มง่าาาาาา"
-					ALL_P = ALL_P.json()
-					noi,mak = 0,len(ALL_P)
-					ANS = -1
-					while noi <= mak:
-						mid = (noi+mak)//2
-						if (id <= ALL_P[mid]['id_Prob']):
-							mak = mid-1
-							ANS = mid
-						else:
-							noi = mid+1
-					if ALL_P[ANS]["id_Prob"] == id:
-						return ALL_P[ANS]["name"]
-					else:
-						return "???????!??????"
+					return iid["sname"]
 
 
 
@@ -239,6 +218,7 @@ class MyClient(discord.Client):
 	global Contest_Time
 	global Contest_namae
 	global Contest_End
+	global Contest_Id
 	global TimeTick
 	global IsStart
 
@@ -330,6 +310,7 @@ class MyClient(discord.Client):
 		global Contest_Time
 		global Contest_namae
 		global Contest_End
+		global Contest_Id
 		global TimeTick
 
 
@@ -349,7 +330,7 @@ class MyClient(discord.Client):
 				if Now_Time > Contest_Time:
 					if Contest_End != INF :
 						if Now_Time < Contest_End:
-							await client.change_presence(activity=discord.Game(name='เหลือเวลา'+Second_To_Good_Str(Contest_End-Now_Time)+' help()'))
+							await client.change_presence(activity=discord.Game(name='เหลือเวลา '+Second_To_Good_Str(Contest_End-Now_Time)+' help()'))
 				else:
 					await client.change_presence(activity=discord.Game(name='รอทำคอนเทส '+Contest_namae+' ในอีก '+Second_To_Good_Str(Contest_Time-Now_Time)+' help()'))
 			else:
