@@ -3,6 +3,7 @@ import requests
 import json
 from json import JSONEncoder
 import time
+import datetime
 import os.path
 import asyncio
 from itertools import cycle
@@ -18,7 +19,8 @@ req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
 INF = 999999999999999999999999
 
-DEB = ""#Before Command
+DEB = "" #Before Command
+Bot_Namae = "OTOG - One Tambon One Grader"
 VER = "B05"
 
 IsStart = False
@@ -55,16 +57,10 @@ def Get_User_Ongoing():
 	Con = response.json()["onlineUser"]
 	if (Con == 0):
 		return "ไม่มีอะ เหงา Hereๆ"
-	return "ฮั่นแน่...มีคนทำโจทย์อยู่ "+str(Con)+"คน *แต่ไม่บอกหรอกว่าคือใคร*"
+	return "ฮั่นแน่...มีคนทำโจทย์อยู่ "+str(Con)+"คน"
 
-def Get_Random_Text_forMention():
-
-    Words = ["จงทำโจทย์ จงทำโจทย์ จงทำโจทย์","ทำโจทย์เถอะ ขอหล่ะ","ว่างมากนั้นก็ไปทำโจทย์สิ","ไม่อ่าน ไม่ตอบ ไม่สน...","แต่ว่า...ทำโจทย์ด้วยสิ...",";w;","=A=!","- -*","แล้วไง?","https://giphy.com/gifs/sad-cry-capoo-3og0IG0skAiznZQLde","https://giphy.com/stickers/cat-pearl-capoo-TFUhSMPFJG7fPAiLpQ","https://giphy.com/gifs/happy-rainbow-capoo-XEgmzMLDhFQAga8umN","https://giphy.com/gifs/cat-color-capoo-dYZxsY7JIMSy2Afy6e","ระเบิดเวลา......**อ๊าาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาา**","โฮ่... แทนที่แกจะเข้าค่ายอื่น แกกลับเดินมาค่ายคอม อย่างนั้นนะเรอะ","เปล่าประโยชน์ เปล่าประโยชน์ เปล่าประโยชน์ เปล่าประโยชน์","**How Dare You!!??**","เคยฟังรึเปล่า... X ติดไซเรน (https://pastebin.com/6a7u1b85)","พี่รู้ว่ามันเศร้า แต่จงทำโจทย์ต่อไปครับ","ญิรดีร์ฏ้อณรับสูเก็ฒเฎอร์ฌาวไฑญ",":thinking:",":joy:",":poop:",":+1:",":eyes:",":P"]
-    return Words[randint(0,len(Words)-1)]
-
-def Get_Random_Text_forHello():
-    Words = ["สวัสดีเจ้า","สวัสดีจ้า","สวัสดีครับ","สวัสดีค่ะ","ສະບາຍດີ","Annyeonghaseyo","Kon'nichiwa","Hello","привет!","ว่าไง",";w;?","Meow Meooww?",":wave:","https://giphy.com/gifs/capoo-halloween-3ov9k0OmfNYeLdK4gg","Nǐ hǎo"]
-    return Words[randint(0,len(Words)-1)] + " {0.author.mention}"
+def Pick_One(LIST):
+	return LIST[randint(0,len(LIST)-1)]
 
 Contest_Time = INF
 Contest_namae = "??"
@@ -79,12 +75,18 @@ def Reload_Incoming_Contest():
 	global Contest_End
 	global Contest_Id
 	global TimeTick
+
 	TimeTick = 0
 	response = requests.get("https://otog.cf/api/contest")
+
+
+
+
 	if response.status_code != 200:
 		Contest_Time = INF
 		Contest_namae = "??"
 		Contest_End = INF
+		Contest_Id = -1
 		return
 	Con = response.json()
 
@@ -99,7 +101,7 @@ def Reload_Incoming_Contest():
 			Contest_Time = cc['time_start']
 			Contest_End = cc['time_end']
 			Contest_Id = cc['idContest']
-			Contest_namae = "`" + cc['name'] + "`"
+			Contest_namae = str(Contest_Id)+" : `" + cc['name'] + "`"
 
 def Second_To_Good_Str(sec):
 	if sec > 60*60*24:
@@ -107,9 +109,9 @@ def Second_To_Good_Str(sec):
 	elif sec > 60*60:
 		return str(sec//(60*60)) + " ชั่วโมง " + str((sec%(60*60))//60) + " นาที "
 	elif sec > 60:
-		return str(sec//60) + " นาที "
+		return str(sec//60) + " นาทีกว่าๆ!"
 	else:
-		return "ไม่ถึงนาที!"
+		return "ไม่ถึงนาที!!"
 
 def Get_Incoming_Contest():
 	global Contest_Time
@@ -130,11 +132,11 @@ def Get_Incoming_Contest():
 	if Delta > 0:
 		Str_Time = "\n["+time.ctime(Contest_Time)+"]"
 
-		Ap_Time = Second_To_Good_Str(Delta);
+		Ap_Time = Second_To_Good_Str(Delta)
 		if Ap_Time == "ไม่ถึงนาที!":
 			Ap_Time += " เตรียมมือเตรียมแขนเตรียมหัวเตรียมขาให้พร้อม"
 
-		return "จะมีคอนเทสที่" + Contest_namae +"ในอีก `" + Ap_Time + "`" + Str_Time
+		return "จะมีคอนเทสที่" + Contest_Id + ":" + Contest_namae +"ในอีก `" + Ap_Time + "`" + Str_Time
 
 	else:
 		if Now_Time < Contest_End :
@@ -209,6 +211,9 @@ def Is_Time_Passed_In_Range(Des,Now,Range):
 	else:
 		return (Now>=Des) and (Now<=Des+Range)
 
+async def Set_Bot_Namae(Client,Namae):
+	for GG in Client.guilds:
+		await GG.me.edit(nick =Namae)
 
 class MyClient(discord.Client):
 
@@ -281,14 +286,14 @@ class MyClient(discord.Client):
 				for i in range(2,6):
 					if new_content[i] == " ":
 						new_content = "Q" + str(Q_ind)+new_content[i:]
-						break;
+						break
 
 				await ME_ADMIN.edit(content = new_content)
 
 				ME_ADMIN = await self.ID_To_Mes(L["Message"])
 
 				if ME_ADMIN == None:
-					RRR = Q_ind;
+					RRR = Q_ind
 
 				Q_ind+=1
 
@@ -330,45 +335,72 @@ class MyClient(discord.Client):
 				if Now_Time > Contest_Time:
 					if Contest_End != INF :
 						if Now_Time < Contest_End:
+							await Set_Bot_Namae(self,Contest_namae)
 							await client.change_presence(activity=discord.Game(name='เหลือเวลา '+Second_To_Good_Str(Contest_End-Now_Time)+' help()'))
 				else:
-					await client.change_presence(activity=discord.Game(name='รอทำคอนเทส '+Contest_namae+' ในอีก '+Second_To_Good_Str(Contest_Time-Now_Time)+' help()'))
+					await Set_Bot_Namae(self,Bot_Namae)
+					await client.change_presence(activity = discord.Game(name='รอทำคอนเทส '+Contest_namae+' ในอีก '+Second_To_Good_Str(Contest_Time-Now_Time)+' help()'))
+
 			else:
-				await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆ help()'))
+				await Set_Bot_Namae(self,Bot_Namae)
+				await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆ help() '))
+
 
 			if st >= 7:
 				st += 1
 			if st == 12:
+				Reload_Incoming_Contest()
 				st = 0
 			#print("Delta = "+ str(Contest_Time-Now_Time))
 			if Is_Time_Passed_In_Range(Contest_Time,Now_Time,0):
 
-				if st < 6:
+				if Is_Time_Passed_In_Range(Contest_Time,Now_Time,60*5) and st < 6:
 					st = 6
 					await channel.send("Contest เริ่มแว้ววว ขอให้ทุกๆคนโชคดีครับ")
 
 				elif Is_Time_Passed_In_Range(Contest_End,Now_Time,60*5) and st < 7:
-					await channel.send("@everyone **TIME'S UP!!**\nหมดเวลาแล้วครับ\nยกมือขึ้นครับ!!!")
+					await channel.send("@everyone **TIME'S UP!!**\nหมดเวลาแล้วครับ\n"+Pick_One(["ยกมือขึ้นครับ!!!","ส่งอาหารได้แล้วครับ","มาดูผลกันครับ","ถือว่าทุกคนทำเต็มที่แล้วนะครับ เก่งมากๆครับ"]))
 					st = 7
-					Reload_Incoming_Contest()
+
 
 			elif Is_Time_Passed_In_Range(Contest_Time-60,Now_Time,60*5) and st < 5:
 				st = 5
 				await channel.send('@everyone\nอีกไม่ถึงนาทีจะมีคอนเทส '+Contest_namae+" ตั้งสติให้พร้อม")
 			elif Is_Time_Passed_In_Range(Contest_Time-60*10,Now_Time,60*5) and st < 4:
 				st = 4
-				await channel.send('ทุกๆคนน\nอ `10 นาที` จะมีคอนเทส '+Contest_namae+" น้าาา เตรียมคีย์บอร์ดและ #include ให้พร้อม")
+				await channel.send('ทุกๆคนน\nอีก `10 นาที` จะมีคอนเทส '+Contest_namae+" "+Pick_One(["น้าาา เตรียมคีย์บอร์ดและ #include ให้พร้อม","はやい!","ปิดโปรแกรมให้หมด แต่ไม่ต้องปิดดิสน้าาา"]))
 			elif Is_Time_Passed_In_Range(Contest_Time-60*60,Now_Time,60*5) and st < 3:
 				st = 3
-				await channel.send('@everyone\nใน `1 ชั่วโมง` จะมีคอนเทส '+Contest_namae+" น้าาา เตรียมตัวให้พร้อม")
+				await channel.send('@everyone\nใน `1 ชั่วโมง` จะมีคอนเทส '+Contest_namae+" "+Pick_One(["น้าาา เตรียมตัวให้พร้อม","เตรียมตัวเปิดตัว IDE คู่ใจได้เลย"]))
 			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24,Now_Time,60*60) and st < 2:
 				st = 2
-				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Contest_namae+" น้าาานอนเล่นได้วันนี้")
+				await channel.send('ทุกๆคนน\nอีก `1 วัน` จะมีคอนเทส '+Contest_namae+" "+Pick_One(["น้าาานอนเล่นได้อีกไม่นานแว้วว","わくわく","..."]))
 			elif Is_Time_Passed_In_Range(Contest_Time-60*60*24*2,Now_Time,60*5) and st < 1:
 				st = 1
 
-				await channel.send('@everyone\nอีก `2 วัน` จะมีคอนเทส '+Contest_namae+" อีกน๊าน สบายได้")
+				await channel.send('@everyone\nอีก `2 วัน` จะมีคอนเทส '+Contest_namae+" "+Pick_One(["อีกน๊าน สบายได้","เตรียมตัวให้พร้อมมม","บอกก่อนเฉยๆ :)",":face_with_monocle:",":trophy:","やれやれ","ไม่ต้องรีบ เจนเคสยุอิอิ"]))
 
+			if TimeTick < 0 :
+				if Is_Time_Passed_In_Range(Contest_Time,Now_Time,0):
+					if Is_Time_Passed_In_Range(Contest_Time,Now_Time,60*5) and st < 6:
+						st = 6
+
+					elif Is_Time_Passed_In_Range(Contest_End,Now_Time,60*5) and st < 7:
+						st = 7
+
+				elif Is_Time_Passed_In_Range(Contest_Time-60,Now_Time,0) and st < 5:
+					st = 5
+				elif Is_Time_Passed_In_Range(Contest_Time-60*10,Now_Time,0) and st < 4:
+					st = 4
+				elif Is_Time_Passed_In_Range(Contest_Time-60*60,Now_Time,0) and st < 3:
+					st = 3
+				elif Is_Time_Passed_In_Range(Contest_Time-60*60*24,Now_Time,0) and st < 2:
+					st = 2
+				elif Is_Time_Passed_In_Range(Contest_Time-60*60*24*2,Now_Time,0) and st < 1:
+					st = 1
+
+					await channel.send('@everyone\nอีก `2 วัน` จะมีคอนเทส '+Contest_namae+" อีกน๊าน สบายได้")
+				TimeTick = 0
 			TimeTick+= 1
 
 			await asyncio.sleep(1)
@@ -379,6 +411,7 @@ class MyClient(discord.Client):
 		print(self.user.name)
 		print(self.user.id)
 		print('------')
+
 
 		#AllowMen = client.AllowedMentions(everyone = True)
 		#print(type(AllowMen))//
@@ -396,6 +429,7 @@ class MyClient(discord.Client):
 		global Question_List
 		global Question_User
 		global Verify_User
+		global TimeTick
 
         # we do not want the bot to reply to itself
 		if message.author.id == self.user.id:
@@ -417,9 +451,12 @@ class MyClient(discord.Client):
 
 
 
-		if message.content.startswith(DEB+'hello()'):
-			await message.channel.send(Get_Random_Text_forHello().format(message))
-		if message.content.startswith(DEB+'help()') or message.content.startswith('!help'):
+		if message.content.lower().startswith(DEB+'hello()'):
+			await message.channel.send((Pick_One(["สวัสดีเจ้า","สวัสดีจ้า","สวัสดีครับ","สวัสดีค่ะ","ສະບາຍດີ","Annyeonghaseyo","Kon'nichiwa","Hello","привет!","ว่าไง",";w;?","Meow Meooww?",":wave:","https://giphy.com/gifs/capoo-halloween-3ov9k0OmfNYeLdK4gg","Nǐ hǎo"])\
+				+ " {0.author.mention}").format(message))
+
+
+		if message.content.lower().startswith(DEB+'help()') or message.content.lower().startswith('!help'):
 			em = discord.Embed(title = "สิ่งที่น้อมทำได้",description = "มีแค่นี้แหละ")
 			em.add_field(name = "help()",value = "ก็ที่ทำอยู่ตอนนี้แหละ")
 			em.add_field(name = "hello()",value = "คำสั่งคนเหงา")
@@ -446,15 +483,16 @@ class MyClient(discord.Client):
 				em.add_field(name = "check_Verify()",value = "ดูว่ามีใครมา Verify ไหม")
 				em.add_field(name = "Watch_Code_Verify(<id>)",value = "ดู Code ของ <id>")
 				em.add_field(name = "test_Verify_Delete()",value = "ลบ Code ของตัวเอง")
+				em.add_field(name = "Force_Reload()",value = "บังคับให้รีโหลดฐานข้อมูลใหม่")
 				em.add_field(name = "shutdown()",value = "ชื่อก็บอกอยู่แล้ว")
 				await message.channel.send(content = None ,embed = em)
 
 
-		if message.content.startswith(DEB+'[OtogRadio] '):
+		if message.content.lower().startswith(DEB+'[otogradio] '):
 			Mes_Str = message.content[len(DEB+'[OtogRadio] '):]
 			await message.channel.send(':microphone:กำลังเปิด `'+Mes_Str+"`")
 
-		if message.content.startswith(DEB+'Verify()'):
+		if message.content.lower().startswith(DEB+'verify()'):
 
 			Is_RETURN0_Role = False
 			if hasattr(message.author, 'roles'):
@@ -505,7 +543,7 @@ class MyClient(discord.Client):
 				if PERFECT:
 					ALL_ROLE = MESS.guild.roles
 					OTOGER = discord.utils.get(ALL_ROLE,name = "OTOGer")
-					await MESS.author.send("ตรวจมาแล้วได้\n"+Verdict+"\nยินดีต้อนรับเข้าสู่เซิฟแห่งความฮา...OTOG")
+					await MESS.author.send("ผลตรวจคือ : "+Verdict+"\nยินดีต้อนรับเข้าสู่เซิฟแห่งความฮา...OTOG")
 					await message.author.edit(roles = [OTOGER])
 					os.remove("VerifyCode\\"+namae+".cpp")
 					os.remove("VerifyCode\\"+namae+"RUN.exe")
@@ -513,7 +551,7 @@ class MyClient(discord.Client):
 
 					return
 				else:
-					await MESS.author.send("ตรวจมาแล้วได้\n"+Verdict+"\nแต่ก็ยังไม่ผ่านอ่ะนะ ลองใหม่นะหึหึ")
+					await MESS.author.send("ผลตรวจคือ : "+Verdict+"\nแต่ก็ยังไม่ผ่านอ่ะนะ ลองใหม่นะหึหึ")
 
 			if namae in Verify_User:
 				Verify_User[namae]+=1
@@ -528,20 +566,20 @@ class MyClient(discord.Client):
 
 
 
-		if message.content.startswith(DEB+'contest()'):
+		if message.content.lower().startswith(DEB+'contest()'):
 			await message.channel.send(Get_Incoming_Contest().format(message))
 
-		if message.content.startswith(DEB+'task()'):
+		if message.content.lower().startswith(DEB+'task()'):
 			await message.channel.send('มีอยู่ '+ Count_All_Task() +" ข้อ")
 			await message.channel.send('ไปทำด้วย!!!')
 
-		if message.content.startswith(DEB+'today_task()'):
+		if message.content.lower().startswith(DEB+'today_task()'):
 			await message.channel.send("อย่าถามเว้ย ไม่รุ")
 
-		if message.content.startswith(DEB+'ranking()'):
+		if message.content.lower().startswith(DEB+'ranking()'):
 			await message.channel.send(Get_Top10_User())
 
-		if message.content.startswith(DEB+'question('):
+		if message.content.lower().startswith(DEB+'question('):
 
 			response = requests.get("https://otog.cf/api/problem")
 
@@ -555,7 +593,7 @@ class MyClient(discord.Client):
 
 			Str_Content = Message_Con.content
 			#question(<id>) <คำถาม>
-			Id_Problem = Str_Content.find("(");
+			Id_Problem = Str_Content.find("(")
 
 
 			for i in range(1,40):
@@ -657,36 +695,42 @@ class MyClient(discord.Client):
 
 		for Mem in message.mentions:
 			if self.user.name == Mem.display_name:
-				await message.channel.send(Get_Random_Text_forMention())
-				break
+				WORDS = ["จงทำโจทย์ จงทำโจทย์ จงทำโจทย์",\
+						"ทำโจทย์เถอะ ขอหล่ะ",\
+						"ว่างมากนั้นก็ไปทำโจทย์สิ",\
+						"ไม่อ่าน ไม่ตอบ ไม่สน...",\
+						"แต่ว่า...ทำโจทย์ด้วยสิ...",\
+						";w;","=A=!","- -*",\
+						"แล้วไง?","https://giphy.com/gifs/sad-cry-capoo-3og0IG0skAiznZQLde","https://giphy.com/stickers/cat-pearl-capoo-TFUhSMPFJG7fPAiLpQ","https://giphy.com/gifs/happy-rainbow-capoo-XEgmzMLDhFQAga8umN","https://giphy.com/gifs/cat-color-capoo-dYZxsY7JIMSy2Afy6e","ระเบิดเวลา......**อ๊าาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาา**","โฮ่... แทนที่แกจะเข้าค่ายอื่น แกกลับเดินมาค่ายคอม อย่างนั้นนะเรอะ","เปล่าประโยชน์ เปล่าประโยชน์ เปล่าประโยชน์ เปล่าประโยชน์","**How Dare You!!??**","เคยฟังรึเปล่า... X ติดไซเรน (https://pastebin.com/6a7u1b85)","พี่รู้ว่ามันเศร้า แต่จงทำโจทย์ต่อไปครับ","ญิรดีร์ฏ้อณรับสูเก็ฒเฎอร์ฌาวไฑญ",":thinking:",":joy:",":poop:",":+1:",":eyes:",":P"]
+				await message.channel.send(Pick_One(WORDS))
 
 
 
 		##Admin Command
 		if Is_Admin:
 
-			if message.content.startswith(DEB+'test()'):
+			if message.content.lower().startswith(DEB+'test()'):
 				await message.channel.send('ยังมีชีวิตอยู่เด้อ')
 
-			if message.content.startswith(DEB+'user_life()'):
+			if message.content.lower().startswith(DEB+'user_life()'):
 				await message.channel.send(Get_User_Ongoing())
 
-			if message.content.startswith(DEB+'shutdown()'):
+			if message.content.lower().startswith(DEB+'shutdown()'):
 				channel = client.get_channel(691644349758308423)
 				await channel.send('Bot is now shutting down')
 				exit(0)
 
-			if message.content.startswith(DEB+'ann()'):
+			if message.content.lower().startswith(DEB+'ann()'):
 				Mes_Str = message.content[len(DEB+'ann()')+1:]
 				channel = client.get_channel(691575760674226217)
 				await message.delete()
 				await channel.send("@everyone\n"+Mes_Str)
 
-			if message.content.startswith(DEB+'say('):
+			if message.content.lower().startswith(DEB+'say('):
 				Str_Content = message.content
 				await message.delete()
 				#Say(4412) ไอ้นี้มันอู้งานครับบ
-				Id_channel = Str_Content.find("(");
+				Id_channel = Str_Content.find("(")
 
 				for i in range(1,40):
 					if Str_Content[Id_channel+i]==")":
@@ -694,7 +738,7 @@ class MyClient(discord.Client):
 						await channel.send(Str_Content[Id_channel+i+2:])
 						break
 
-			if message.content.startswith(DEB+'q_answer('):
+			if message.content.lower().startswith(DEB+'q_answer('):
 
 				response = requests.get("https://otog.cf/api/problem")
 
@@ -705,7 +749,7 @@ class MyClient(discord.Client):
 
 				Str_Content = message.content
 				#question(<id>) <คำถาม>
-				Id_Problem = Str_Content.find("(");
+				Id_Problem = Str_Content.find("(")
 
 
 				for i in range(1,40):
@@ -757,11 +801,11 @@ class MyClient(discord.Client):
 				Question_List.pop(Id_Question-1)
 				await self.Reload_Question()
 
-			if message.content.startswith(DEB+'q_remove('):
+			if message.content.lower().startswith(DEB+'q_remove('):
 
 				Str_Content = message.content
 				#question(<id>) <คำถาม>
-				Id_Problem = Str_Content.find("(");
+				Id_Problem = Str_Content.find("(")
 
 
 				for i in range(1,40):
@@ -797,7 +841,7 @@ class MyClient(discord.Client):
 				Question_List.pop(Id_Question-1)
 				await self.Reload_Question()
 
-			if message.content.startswith(DEB+'q_clear()'):
+			if message.content.lower().startswith(DEB+'q_clear()'):
 				channel_Quation_All = client.get_channel(694444493570572288)
 				await channel_Quation_All.send("ลาก่อย")
 
@@ -816,7 +860,7 @@ class MyClient(discord.Client):
 				Question_User = {}
 				self.sSave()
 
-			if message.content.startswith(DEB+'q_list()'):
+			if message.content.lower().startswith(DEB+'q_list()'):
 				channel_Quation_All = client.get_channel(694444493570572288)
 				if len(Question_List) > 0:
 
@@ -835,7 +879,7 @@ class MyClient(discord.Client):
 				else:
 					await message.channel.send("ไม่มีใครถามมางะ เหงาจุง")
 
-			if message.content.startswith(DEB+'test_Verify()'):
+			if message.content.lower().startswith(DEB+'test_verify()'):
 				namae = str(message.author.id)
 				CODO = message.content[len(DEB+'test_Verify()')+1:]
 				n_FILE = open("VerifyCode\\"+namae+".cpp","w")
@@ -850,7 +894,7 @@ class MyClient(discord.Client):
 				else:
 					await message.channel.send(Verdict)
 
-			if message.content.startswith(DEB+'check_Verify()'):
+			if message.content.lower().startswith(DEB+'check_verify()'):
 				if len(Verify_User.keys()) != 0:
 					await message.channel.send("ตอนนี้มี `"+str(len(Verify_User.keys()))+"`ea ที่กำลังอยู่ในบททดสอบ")
 					ALL_Verify = ""
@@ -863,13 +907,13 @@ class MyClient(discord.Client):
 				else:
 					await message.channel.send("ไม่มีคนมา Verify งะ")
 
-			if message.content.startswith(DEB+'Watch_Code_Verify('):
+			if message.content.lower().startswith(DEB+'Watch_Code_Verify('):
 
 				Watch_ID = len(DEB+'Watch_Code_Verify(')
 				for i in range(1,100):
 					if message.content[Watch_ID+i] == ")":
 						Watch_ID = message.content[Watch_ID:Watch_ID+i]
-						break;
+						break
 
 				try:
 					F = open("VerifyCode\\"+Watch_ID+".cpp","r")
@@ -881,20 +925,28 @@ class MyClient(discord.Client):
 
 				await message.channel.send(Getname(self,Watch_ID,message.guild)+"'s CODE\n`"+CODO+"`")
 
-			if message.content.startswith(DEB+'test_Verify_Delete()'):
+			if message.content.lower().startswith(DEB+'test_verify_delete()'):
 				namae = str(message.author.id)
-				os.remove("VerifyCode\\"+namae+".cpp")
-				os.remove("VerifyCode\\"+namae+"RUN.exe")
+				try:
+					os.remove("VerifyCode\\"+namae+".cpp")
+					os.remove("VerifyCode\\"+namae+"RUN.exe")
+				except:
+					await message.channel.send("ไม่มีเว้ยย")
+					return
 				await message.channel.send("จัดการให้แล้ว")
 
+			if message.content.lower().startswith(DEB+'force_reload()'):
+				await message.channel.send("จัดการให้แล้ว!!")
+				Reload_Incoming_Contest()
+				TimeTick = -2
 
 
 
-	async def on_guild_join(guild):
+
+	async def on_guild_join(self,guild):
 		await guild.system_channel.send("กราบสวัสดีพ่อแม่พี่น้องครับ")
 
 	async def on_member_join(self, member):
-		MESS = message
 		ALL_ROLE = member.guild.roles
 
 		role = discord.utils.get(ALL_ROLE,name = "return 0;")
@@ -911,7 +963,7 @@ class MyClient(discord.Client):
 			to_send = 'ลาก่อย {0.mention}!'.format(member)
 			await guild.system_channel.send(to_send)
 
-	async def announcements(Con):
+	async def announcements(self,Con):
 		channel = client.get_channel(691618323468779532)
 		await channel.send(Con)
 
