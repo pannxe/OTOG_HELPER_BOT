@@ -19,9 +19,12 @@ req = Request('https://otog.cf/main', headers={'User-Agent': 'Mozilla/5.0'})
 
 INF = 999999999999999999999999
 
-DEB = "" #Before Command
 Bot_Namae = "OTOG - One Tambon One Grader"
-VER = "B05"
+DEB = "" #Before Command
+if DEB != "":
+	Bot_Namae = "น้อวงตัวน้อยยย"
+
+VER = "B06"
 
 IsStart = False
 
@@ -50,14 +53,31 @@ def Getname(Client,Id,Guild = None):
 def Count_Today_Task():
 	return "??"
 
-def Get_User_Ongoing():
+def Time_Convert(hour = 0,minn = 0,secc = 0):
+	TI = (hour-7)*60*60+minn*60+secc
+	if TI < 0:
+		TI += 60*60*24
+	return TI
+
+User_Live_Count = -1
+
+def Reload_User_Live_Count():
+	global User_Live_Count
 	response = requests.get("https://otog.cf/api/countProblem")
 	if response.status_code != 200:
-		return "เว็ปบึ้มง่าาาาาา"
-	Con = response.json()["onlineUser"]
-	if (Con == 0):
+		User_Live_Count = -1
+	else:
+		User_Live_Count = response.json()["onlineUser"]
+
+def Get_User_Ongoing():
+
+	Reload_User_Live_Count()
+
+	if (User_Live_Count == -1):
+		return "เว็ปบึ้มง่าาาา"
+	elif (User_Live_Count == 0):
 		return "ไม่มีอะ เหงา Hereๆ"
-	return "ฮั่นแน่...มีคนทำโจทย์อยู่ "+str(Con)+"คน"
+	return "ฮั่นแน่...มีคนทำโจทย์อยู่ "+str(User_Live_Count)+"คน"
 
 def Pick_One(LIST):
 	return LIST[randint(0,len(LIST)-1)]
@@ -226,6 +246,8 @@ class MyClient(discord.Client):
 	global Contest_Id
 	global TimeTick
 	global IsStart
+	global User_Live_Count
+	global VER
 
 	def sSave(self):
 		ddata = {
@@ -236,7 +258,7 @@ class MyClient(discord.Client):
 		try:
 			os.makedirs("All_DATA")
 		except:
-			print("")
+			ISLAISLA = 1
 		with open("All_DATA/Save_Data"+VER+".otog", 'w') as outfile:
 			json.dump(ddata, outfile)
 
@@ -317,6 +339,7 @@ class MyClient(discord.Client):
 		global Contest_End
 		global Contest_Id
 		global TimeTick
+		global User_Live_Count
 
 
 		await self.wait_until_ready()
@@ -331,6 +354,10 @@ class MyClient(discord.Client):
 				Reload_Incoming_Contest()
 
 
+			if TimeTick %60 == 0 and (int(time.time())%(60*60*24) < Time_Convert(hour = 2,minn = 0) or int(time.time())%(60*60*24) > Time_Convert(hour = 5,minn = 0)):
+				Reload_User_Live_Count()
+
+
 			if Contest_Time != INF:
 				if Now_Time > Contest_Time:
 					if Contest_End != INF :
@@ -343,7 +370,19 @@ class MyClient(discord.Client):
 
 			else:
 				await Set_Bot_Namae(self,Bot_Namae)
-				await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆ help() '))
+
+				#if int(time.time())%(60*60*24) >= Time_Convert(hour = 20,minn = 20):
+				if(int(time.time())%(60*60*24) >= Time_Convert(hour = 2,minn = 0) and int(time.time())%(60*60*24) <= Time_Convert(hour = 5,minn = 0)):
+					await client.change_presence(status=discord.Status.idle,activity=discord.Game(name='น้องนอนอยู่'))
+				
+				elif(User_Live_Count == -1):
+					await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆ help() '))
+				elif(User_Live_Count == 0):
+					await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆจริงๆ help() '))
+				else:
+					await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์กับอีก '+str(User_Live_Count)+' คน help() '))
+
+				
 
 
 			if st >= 7:
@@ -430,6 +469,7 @@ class MyClient(discord.Client):
 		global Question_User
 		global Verify_User
 		global TimeTick
+		global VER
 
         # we do not want the bot to reply to itself
 		if message.author.id == self.user.id:
@@ -457,34 +497,35 @@ class MyClient(discord.Client):
 
 
 		if message.content.lower().startswith(DEB+'help()') or message.content.lower().startswith('!help'):
-			em = discord.Embed(title = "สิ่งที่น้อมทำได้",description = "มีแค่นี้แหละ")
-			em.add_field(name = "help()",value = "ก็ที่ทำอยู่ตอนนี้แหละ")
-			em.add_field(name = "hello()",value = "คำสั่งคนเหงา")
-			em.add_field(name = "contest()",value = "คอนเทสที่กำลังจะมาถึง")
-			em.add_field(name = "task()",value = "จำนวนโจทย์ตอนนี้")
+			em = discord.Embed(title = ":grey_question:สิ่งที่น้อมทำได้:grey_question:",description = "มีแค่นี้แหละ")
+			em.add_field(name = ":grey_question:help()",value = "ก็ที่ทำอยู่ตอนนี้แหละ")
+			em.add_field(name = ":speech_balloon:hello()",value = "คำสั่งคนเหงา")
+			em.add_field(name = ":trophy:contest()",value = "คอนเทสที่กำลังจะมาถึง")
+			em.add_field(name = ":person_playing_handball:task()",value = "จำนวนโจทย์ตอนนี้")
 			#em.add_field(name = "today_task()",value = "โจทย์ใหม่วันนี้")
-			em.add_field(name = "ranking()",value = "คำสั่งไว้ขิงกัน")
-			em.add_field(name = "question(<id>) <คำถาม>",value = "ถามคำถามเกี่ยวกับโจทย์ข้อที่ <id>\nและ<คำถาม>ควรตอบเป็น Yes/No(ใช่/ไม่ใช่)")
-			em.add_field(name = "[OtogRadio] <ชื่อเพลง>",value = "ขอเพลงได้ๆๆ")
+			em.add_field(name = ":military_medal:ranking()",value = "คำสั่งไว้ขิงกัน")
+			em.add_field(name = ":question:question(<ชื่อโจทย์>) <คำถาม>",value = "ถามคำถามเกี่ยวกับโจทย์ข้อที่ <id>\nและ<คำถาม>ควรตอบเป็น Yes/No(ใช่/ไม่ใช่)")
+			em.add_field(name = ":musical_note:[OtogRadio] <ชื่อเพลง>",value = "ขอเพลงได้ๆๆ")
 
 			await message.channel.send(content = None ,embed = em)
 
 			if Is_Admin:
-				em = discord.Embed(title = "สิ่งที่แอดมินทำได้",description = "แค่ในนี้เท่านั้น")
-				em.add_field(name = "user_life()",value = "ดูว่าใครมีชีวิตอยู่บ้าง")
-				em.add_field(name = "ann() <Text>",value = "ประกาศๆๆๆๆ")
-				em.add_field(name = "say(<Channel_ID>) <Text>",value = "ส่ง <Text> ไปยังห้อง <Channel_ID>")
-				em.add_field(name = "q_list()",value = "ดูคำถามทั้งหมดที่น้องๆถามมา")
-				em.add_field(name = "q_answer(<id>) <text>",value = "ตอบคำถามที่ <id> โดยคำถามจะหายด้วย")
-				em.add_field(name = "q_remove(<id>)",value = "ลบคำถามที่ <id>")
-				em.add_field(name = "q_clear()",value = "clear คำถามทั้งหมด(ต้องแน่ใจจริงๆว่าจะทำ)")
-				em.add_field(name = "test()",value = "ดูว่าน้องยังมีชีวิตอยู่ไหม")
-				em.add_field(name = "test_Verify()\\n<Code in C/C++>",value = "ทดสอบว่า Grader แมวๆยังใช้ได้ไหม")
-				em.add_field(name = "check_Verify()",value = "ดูว่ามีใครมา Verify ไหม")
-				em.add_field(name = "Watch_Code_Verify(<id>)",value = "ดู Code ของ <id>")
-				em.add_field(name = "test_Verify_Delete()",value = "ลบ Code ของตัวเอง")
-				em.add_field(name = "Force_Reload()",value = "บังคับให้รีโหลดฐานข้อมูลใหม่")
-				em.add_field(name = "shutdown()",value = "ชื่อก็บอกอยู่แล้ว")
+				em = discord.Embed(title = ":grey_question:สิ่งที่แอดมินทำได้:grey_question:",description = "แค่ในนี้เท่านั้น")
+				em.add_field(name = ":orange_heart:user_life()",value = "ดูว่าใครมีชีวิตอยู่บ้าง")
+				em.add_field(name = ":1234:Version()",value = "ตรวจสอบ Version")
+				em.add_field(name = ":loudspeaker:ann() <Text>",value = "ประกาศๆๆๆๆ")
+				em.add_field(name = ":loudspeaker:say(<Channel_ID>) <Text>",value = "ส่ง <Text> ไปยังห้อง <Channel_ID>")
+				em.add_field(name = ":question:q_list()",value = "ดูคำถามทั้งหมดที่น้องๆถามมา")
+				em.add_field(name = ":question:q_answer(<id>) <text>",value = "ตอบคำถามที่ <id> โดยคำถามจะหายด้วย")
+				em.add_field(name = ":question:q_remove(<id>)",value = "ลบคำถามที่ <id>")
+				em.add_field(name = ":question:q_clear()",value = "clear คำถามทั้งหมด(ต้องแน่ใจจริงๆว่าจะทำ)")
+				em.add_field(name = ":exclamation:test()",value = "ดูว่าน้องยังมีชีวิตอยู่ไหม")
+				em.add_field(name = ":exclamation:test_Verify()\\n<Code in C/C++>",value = "ทดสอบว่า Grader แมวๆยังใช้ได้ไหม")
+				em.add_field(name = ":exclamation:check_Verify()",value = "ดูว่ามีใครมา Verify ไหม")
+				em.add_field(name = ":exclamation:Watch_Code_Verify(<id>)",value = "ดู Code ของ <id>")
+				em.add_field(name = ":exclamation:test_Verify_Delete()",value = "ลบ Code ของตัวเอง")
+				em.add_field(name = ":exclamation:Force_Reload()",value = "บังคับให้รีโหลดฐานข้อมูลใหม่")
+				em.add_field(name = ":sleeping_accommodation:shutdown()",value = "ชื่อก็บอกอยู่แล้ว")
 				await message.channel.send(content = None ,embed = em)
 
 
@@ -498,8 +539,6 @@ class MyClient(discord.Client):
 			if hasattr(message.author, 'roles'):
 				for r in message.author.roles:
 					Is_RETURN0_Role = Is_RETURN0_Role or (str(r) == "return 0;")
-					print(str(r))
-					print(Is_RETURN0_Role)
 			else:
 				return
 
@@ -596,7 +635,7 @@ class MyClient(discord.Client):
 			Id_Problem = Str_Content.find("(")
 
 
-			for i in range(1,40):
+			for i in range(1,500):
 				if Str_Content[Id_Problem+i]==")":
 					if Id_Problem+i+2 >= len(Str_Content):
 						await Message_Con.author.send("ไม่ใส่คำถามก็ไม่รู้จะตอบยังไงงง")
@@ -606,21 +645,9 @@ class MyClient(discord.Client):
 					Question_Con.replace("`","'")
 					Id_Problem = Str_Content[Id_Problem+1:Id_Problem+i]
 					break
-			try:
-				Id_Problem = int(Id_Problem)
-			except ValueError:
-				await Message_Con.author.send("ไหว้ล่ะ ใส่ <id> เป็นจำนวนเต็มเถอะ\nพี่ๆจะได้ตอบคำถามได้ง่ายๆ ?" + str(Id_Problem))
-				return
+			
 			channel_Quation_All = client.get_channel(694444493570572288)
 
-			Problem_Name = Get_Problem_Name(Id_Problem)
-
-			if Problem_Name == "???????!??????":
-				await Message_Con.author.send("อย่าถามในข้อที่ยังไม่เปิดสิฟะ (ข้อที่"+str(Id_Problem)+")")
-				return
-			elif Problem_Name == "NANI!?!?!?!?!?":
-				await Message_Con.author.send("เห้ย!? เจ้ารู้ได้ไงว่ามันจะออกข้อที่"+str(Id_Problem)+"\nหรือว่า แกน่ะ คือผู้ใช้แสตนอย่างงั้นรึ")
-				return
 
 			Name_Sender = message.author.display_name
 			Id_Sender = str(message.author.id)
@@ -643,6 +670,7 @@ class MyClient(discord.Client):
 
 							Mess_Str = Mess_Str[:i]
 							Mess_Str+=Question_Con + "`"
+							await Mess.edit(content = Mess_Str)
 
 							#replace Admin message
 							Mess = await self.ID_To_Mes(QQ["Message_Admin"])
@@ -655,8 +683,9 @@ class MyClient(discord.Client):
 
 							await Mess.edit(content = Mess_Str)
 
-							str_sen = "แก้คำถาม `{id}:{Pro_name}` เรียบร้อยแล้ว".format(id = Id_Problem,Pro_name = Problem_Name)
-							await Message_Con.author.send(str_sen)
+							str_sen = "แก้คำถาม `{Pro_name}` เรียบร้อยแล้ว".format(Pro_name = Id_Problem)
+							Nofi = await Message_Con.author.send(str_sen)
+							await Nofi.delete(delay = 30)
 
 							return
 				else:
@@ -671,10 +700,10 @@ class MyClient(discord.Client):
 
 
 
-			Message_Sent = await Message_Con.author.send("**ถามสำเร็จ**\nในข้อ `{id_name} : {id}` \nQ : `{mes}`\nA : รอไปก่อนแบบใจเย็นๆ...".format(id_name = Problem_Name,id = Id_Problem,mes = Question_Con))
+			Message_Sent = await Message_Con.author.send("**ถามสำเร็จ**\nในข้อ `{id}` \nQ : `{mes}`\nA : รอไปก่อนแบบใจเย็นๆ...".format(id = Id_Problem,mes = Question_Con))
 
 			Question_Ind = len(Question_List)+1
-			Mes_Str = """Q{ind} : มีน้อง`{namae}`ถามมาว่า ข้อ `{id_name} : {id}` ซึ่งถามมาว่า `{mes}`""".format(namae = Name_Sender,ind = Question_Ind,id_name = Problem_Name,id = Id_Problem,mes = Question_Con)
+			Mes_Str = """Q{ind} : มีน้อง`{namae}`ถามมาว่า ในข้อ `{id}` ซึ่งถามมาว่า `{mes}`""".format(namae = Name_Sender,ind = Question_Ind,id = Id_Problem,mes = Question_Con)
 			Message_Sent_G = await channel_Quation_All.send(Mes_Str)
 
 			Question_List.append(\
@@ -682,11 +711,11 @@ class MyClient(discord.Client):
 			"Id_Sender" : Id_Sender, \
 			"Que_Ind" : Question_Ind, \
 			"Problem_Id" : Id_Problem, \
-			"Problem_name" : Problem_Name, \
+			"Problem_name" : Id_Problem, \
 			"Que_Message" : Question_Con, \
 			"Message" : self.Mes_To_ID(Message_Sent), \
 			"Message_Admin" : self.Mes_To_ID(Message_Sent_G), \
-			"ANS" : "Q : ในข้อ `{id_name} : {id}` ถามว่า `{mes}`\nA : ".format(id_name = Problem_Name,id = Id_Problem,mes = Question_Con) \
+			"ANS" : "Q : ในข้อ `{id}` ถามว่า `{mes}`\nA : ".format(id = Id_Problem,mes = Question_Con) \
 			})
 			self.sSave()
 
@@ -708,6 +737,9 @@ class MyClient(discord.Client):
 
 		##Admin Command
 		if Is_Admin:
+			
+			if message.content.lower().startswith(DEB+'version()'):
+				await message.channel.send('ตอนนี้ Version '+ VER + ' เด้อ!!')
 
 			if message.content.lower().startswith(DEB+'test()'):
 				await message.channel.send('ยังมีชีวิตอยู่เด้อ')
@@ -724,7 +756,7 @@ class MyClient(discord.Client):
 				Mes_Str = message.content[len(DEB+'ann()')+1:]
 				channel = client.get_channel(691575760674226217)
 				await message.delete()
-				await channel.send("@everyone\n"+Mes_Str)
+				await channel.send(":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str)
 
 			if message.content.lower().startswith(DEB+'say('):
 				Str_Content = message.content
@@ -786,8 +818,9 @@ class MyClient(discord.Client):
 					return
 
 				#Ans_Con
-				await Message_Sender.edit(content=(Question_List[Id_Question-1]["ANS"]+'`'+Ans_Con+'`'))
-
+				
+				await Message_Sender.channel.send(Question_List[Id_Question-1]["ANS"]+'`'+Ans_Con+'`')
+				await Message_Sender.delete()
 
 				Mes_Admin = await self.ID_To_Mes(Question_List[Id_Question-1]["Message_Admin"])
 
