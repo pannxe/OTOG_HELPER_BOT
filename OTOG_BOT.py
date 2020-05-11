@@ -875,17 +875,22 @@ class MyClient(discord.Client):
 						
 				if len(message.attachments) > 0:
 					F = []
+					All_File_Name = []
 					for A in message.attachments:
 						NAMAE = A.filename
 						await A.save(NAMAE)
+						All_File_Name.append(NAMAE)
 						
 						F.append(discord.File(fp = NAMAE,filename = NAMAE))
+					
 					await channel.send(content = ":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str,files = F)
 
-					try:
-						os.remove(NAMAE)
-					except:
-						pass
+					for N_File in All_File_Name:
+						try:
+							os.remove(N_File)
+						except:
+							pass
+					
 						
 				else:
 					await channel.send(":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str)
@@ -905,17 +910,24 @@ class MyClient(discord.Client):
 						
 						if len(message.attachments) > 0:
 							F = []
+							All_File_Name = []
 							for A in message.attachments:
 								NAMAE = A.filename
 								await A.save(NAMAE)
+								All_File_Name.append(NAMAE)
 								
 								F.append(discord.File(fp = NAMAE,filename = NAMAE))
+
+								
+							
 							await channel.send(content = Str_Content[Id_channel+i+2:],files = F)
 
-							try:
-								os.remove(NAMAE)
-							except:
-								pass
+							for N_File in All_File_Name:
+								try:
+									os.remove(N_File)
+								except:
+									pass
+							
 						
 						else:
 							await channel.send(Str_Content[Id_channel+i+2:])
@@ -935,18 +947,25 @@ class MyClient(discord.Client):
 						
 						if len(message.attachments) > 0:
 							F = []
+							All_File_Name = []
 							for A in message.attachments:
 								NAMAE = A.filename
 								await A.save(NAMAE)
+								All_File_Name.append(NAMAE)
 								print("NAME file is",NAMAE)
 								
 								F.append(discord.File(fp = NAMAE,filename = NAMAE))
+								
+							
 							await channel.send(content = Str_Content[Id_channel+i+2:],files = F)
 
-							try:
-								os.remove(NAMAE)
-							except:
-								print("Cant Delete file",NAMAE)
+
+							for N_File in All_File_Name:
+
+								try:
+									os.remove(N_File)
+								except:
+									print("Cant Delete file",N_File)
 						
 						else:
 							print("Sending...",Str_Content[Id_channel+i+2:])
