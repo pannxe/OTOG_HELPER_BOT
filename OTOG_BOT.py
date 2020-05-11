@@ -868,23 +868,92 @@ class MyClient(discord.Client):
 				exit(0)
 
 			if message.content.lower().startswith(DEB+'ann()'):
-				Mes_Str = message.content[len(DEB+'ann()')+1:]
+
 				channel = client.get_channel(691575760674226217)
+				Mes_Str = message.content[len(DEB+'ann()')+1:]
+
+						
+				if len(message.attachments) > 0:
+					F = []
+					for A in message.attachments:
+						NAMAE = A.filename
+						await A.save(NAMAE)
+						
+						F.append(discord.File(fp = NAMAE,filename = NAMAE))
+					await channel.send(content = ":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str,files = F)
+
+					try:
+						os.remove(NAMAE)
+					except:
+						pass
+						
+				else:
+					await channel.send(":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str)
+						
 				await message.delete()
-				await channel.send(":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str)
 
 
 			if message.content.lower().startswith(DEB+'say('):
 				Str_Content = message.content
-				await message.delete()
+				
 				#Say(4412) ไอ้นี้มันอู้งานครับบ
 				Id_channel = Str_Content.find("(")
 
 				for i in range(1,40):
 					if Str_Content[Id_channel+i]==")":
 						channel = client.get_channel(int(Str_Content[Id_channel+1:Id_channel+i]))
-						await channel.send(Str_Content[Id_channel+i+2:])
+						
+						if len(message.attachments) > 0:
+							F = []
+							for A in message.attachments:
+								NAMAE = A.filename
+								await A.save(NAMAE)
+								
+								F.append(discord.File(fp = NAMAE,filename = NAMAE))
+							await channel.send(content = Str_Content[Id_channel+i+2:],files = F)
+
+							try:
+								os.remove(NAMAE)
+							except:
+								pass
+						
+						else:
+							await channel.send(Str_Content[Id_channel+i+2:])
+						
 						break
+				await message.delete()
+
+			if message.content.lower().startswith(DEB+'say_test('):
+				Str_Content = message.content
+				
+				#Say(4412) ไอ้นี้มันอู้งานครับบ
+				Id_channel = Str_Content.find("(")
+
+				for i in range(1,40):
+					if Str_Content[Id_channel+i]==")":
+						channel = client.get_channel(int(Str_Content[Id_channel+1:Id_channel+i]))
+						
+						if len(message.attachments) > 0:
+							F = []
+							for A in message.attachments:
+								NAMAE = A.filename
+								await A.save(NAMAE)
+								print("NAME file is",NAMAE)
+								
+								F.append(discord.File(fp = NAMAE,filename = NAMAE))
+							await channel.send(content = Str_Content[Id_channel+i+2:],files = F)
+
+							try:
+								os.remove(NAMAE)
+							except:
+								print("Cant Delete file",NAMAE)
+						
+						else:
+							print("Sending...",Str_Content[Id_channel+i+2:])
+							await channel.send(Str_Content[Id_channel+i+2:])
+						
+						break
+				await message.delete()
 
 			if message.content.lower().startswith(DEB+'q_answer('):
 
