@@ -375,11 +375,14 @@ class MyClient(discord.Client):
 					await client.change_presence(status=discord.Status.idle,activity=discord.Game(name='น้องนอนอยู่'))
 
 				elif(User_Live_Count == -1):
-					await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆ help() '))
+					ACC = discord.Activity(name = 'ERROR PLZ help() ',type = discord.ActivityType.playing,url = "https://otog.cf/")
+					await client.change_presence(status=discord.Status.dnd,activity=ACC)
 				elif(User_Live_Count == 0):
-					await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์แบบเหงาๆจริงๆ help() '))
+					ACC = discord.Activity(name = 'ป่าช้า help() ',type = discord.ActivityType.listening,url = "https://otog.cf/")
+					await client.change_presence(activity=ACC)
 				else:
-					await client.change_presence(activity=discord.Game(name='นั่งทำโจทย์กับอีก '+str(User_Live_Count)+' คน help() '))
+					ACC = discord.Activity(name = 'คน '+str(User_Live_Count)+' คนทำโจทย์ help() ',type = discord.ActivityType.watching,url = "https://otog.cf/")
+					await client.change_presence(activity=ACC)
 
 
 
@@ -533,7 +536,7 @@ class MyClient(discord.Client):
 
 		if message.content.lower().startswith(DEB+'guess_num()'):
 			namae = str(message.author.id)
-			
+
 			GUILD = None
 			try:
 				GUILD = message.channel.guild
@@ -549,7 +552,7 @@ class MyClient(discord.Client):
 				":1234:วิธีการเล่นคือ ข้าจะ**คิดเลขหนึ่งตัวตั้งแต่ 1 ถึง 100**\nเจ้าต้องทายเลขของค่าให้ถูก**ภายใน 7 ครั้ง**\nสามารถทายโดยการ `? <ตัวเลข>` เช่น `? 12`\n" + \
 				":arrow_down:ถ้าเลขที่เจ้าตอบมัน**ต่ำกว่า** ข้าก็จะบอก**ต่ำไป** \n:arrow_up:แต่ถ้าเลขเจ้ามัน**สูงไป** ข้าก็จะบอก **สูงไป** \n:white_check_mark:แต่ถ้าถูก ข้าจะบอกว่าถูกเอง\n:x:ถ้าเจ้ากลัวที่จะแพ้ข้าก็สามารถออกได้โดยการ `? *` เอา หึๆๆๆ" \
 				)
-			
+
 			NEW = {"Time" : 0,"Troll" : randint(0,2) == 0,"TrollSeq" : False,"ANS" : randint(1,100)}
 			Guess_Num[namae] = dict(NEW)
 
@@ -622,7 +625,7 @@ class MyClient(discord.Client):
 							await message.delete()
 							Guess_Num.pop(namae,None)
 
-					
+
 
 
 		if message.content.lower().startswith(DEB+'[otogradio] '):
@@ -733,7 +736,7 @@ class MyClient(discord.Client):
 
 			for i in range(1,500):
 				if Str_Content[Id_Problem+i]==")":
-					
+
 					Id_Problem = Str_Content[Id_Problem+1:Id_Problem+i]
 					if (Str_Content.find("("))+i+2 >= len(Str_Content):
 
@@ -760,14 +763,14 @@ class MyClient(discord.Client):
 						return
 					Question_Con =  Str_Content[(Str_Content.find("("))+i+2:]
 					Question_Con.replace("`","'")
-					
+
 					break
 
 			channel_Quation_All = client.get_channel(694444493570572288)
 
 
 			Name_Sender = message.author.display_name
-			
+
 
 			#print("Id_Sender =",Id_Sender)
 			#print("Question_User =",Question_User)
@@ -776,7 +779,7 @@ class MyClient(discord.Client):
 				if Id_Problem in Question_User[Id_Sender]:
 					for QQ in Question_List:
 						if QQ["Id_Sender"] == Id_Sender and QQ["Problem_Id"] == Id_Problem:
-							
+
 							#replace User Message
 							Mess = await self.ID_To_Mes(QQ["Message"])
 							Mess_Str = Mess.content
@@ -872,7 +875,7 @@ class MyClient(discord.Client):
 				channel = client.get_channel(691575760674226217)
 				Mes_Str = message.content[len(DEB+'ann()')+1:]
 
-						
+
 				if len(message.attachments) > 0:
 					F = []
 					All_File_Name = []
@@ -880,9 +883,9 @@ class MyClient(discord.Client):
 						NAMAE = A.filename
 						await A.save(NAMAE)
 						All_File_Name.append(NAMAE)
-						
+
 						F.append(discord.File(fp = NAMAE,filename = NAMAE))
-					
+
 					await channel.send(content = ":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str,files = F)
 
 					for N_File in All_File_Name:
@@ -890,24 +893,24 @@ class MyClient(discord.Client):
 							os.remove(N_File)
 						except:
 							pass
-					
-						
+
+
 				else:
 					await channel.send(":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str)
-						
+
 				await message.delete()
 
 
 			if message.content.lower().startswith(DEB+'say('):
 				Str_Content = message.content
-				
+
 				#Say(4412) ไอ้นี้มันอู้งานครับบ
 				Id_channel = Str_Content.find("(")
 
 				for i in range(1,40):
 					if Str_Content[Id_channel+i]==")":
 						channel = client.get_channel(int(Str_Content[Id_channel+1:Id_channel+i]))
-						
+
 						if len(message.attachments) > 0:
 							F = []
 							All_File_Name = []
@@ -915,11 +918,11 @@ class MyClient(discord.Client):
 								NAMAE = A.filename
 								await A.save(NAMAE)
 								All_File_Name.append(NAMAE)
-								
+
 								F.append(discord.File(fp = NAMAE,filename = NAMAE))
 
-								
-							
+
+
 							await channel.send(content = Str_Content[Id_channel+i+2:],files = F)
 
 							for N_File in All_File_Name:
@@ -927,24 +930,24 @@ class MyClient(discord.Client):
 									os.remove(N_File)
 								except:
 									pass
-							
-						
+
+
 						else:
 							await channel.send(Str_Content[Id_channel+i+2:])
-						
+
 						break
 				await message.delete()
 
 			if message.content.lower().startswith(DEB+'say_test('):
 				Str_Content = message.content
-				
+
 				#Say(4412) ไอ้นี้มันอู้งานครับบ
 				Id_channel = Str_Content.find("(")
 
 				for i in range(1,40):
 					if Str_Content[Id_channel+i]==")":
 						channel = client.get_channel(int(Str_Content[Id_channel+1:Id_channel+i]))
-						
+
 						if len(message.attachments) > 0:
 							F = []
 							All_File_Name = []
@@ -953,10 +956,10 @@ class MyClient(discord.Client):
 								await A.save(NAMAE)
 								All_File_Name.append(NAMAE)
 								print("NAME file is",NAMAE)
-								
+
 								F.append(discord.File(fp = NAMAE,filename = NAMAE))
-								
-							
+
+
 							await channel.send(content = Str_Content[Id_channel+i+2:],files = F)
 
 
@@ -966,11 +969,11 @@ class MyClient(discord.Client):
 									os.remove(N_File)
 								except:
 									print("Cant Delete file",N_File)
-						
+
 						else:
 							print("Sending...",Str_Content[Id_channel+i+2:])
 							await channel.send(Str_Content[Id_channel+i+2:])
-						
+
 						break
 				await message.delete()
 
@@ -1047,7 +1050,7 @@ class MyClient(discord.Client):
 				await self.Reload_Question()
 
 			if message.content.lower().startswith(DEB+'q_remove('):
-				
+
 				namae = str(message.author.id)
 				GUILD = None
 				try:
