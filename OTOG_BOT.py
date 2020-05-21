@@ -66,17 +66,24 @@ def Reload_User_Live_Count():
 	if response.status_code != 200:
 		User_Live_Count = -1
 	else:
-		User_Live_Count = response.json()["onlineUser"]
+		User_Live_Count = len(response.json()["onlineUser"])
 
 def Get_User_Ongoing():
 
 	Reload_User_Live_Count()
 
-	if (User_Live_Count == -1):
+	response = requests.get("https://otog.cf/api/countProblem")
+	if response.status_code != 200:
 		return "เว็ปบึ้มง่าาาา"
-	elif (User_Live_Count == 0):
-		return "ไม่มีอะ เหงา Hereๆ"
-	return "ฮั่นแน่...มีคนทำโจทย์อยู่ "+str(User_Live_Count)+"คน"
+	else:
+		STR = ":eyes:ฮั่นแน่...มี "
+		ALL_User = response.json()["onlineUser"]
+		for USER in ALL_User:
+			if(USER["sname"] == ALL_User[-1]["sname"]):
+				STR += "และ`"+USER["sname"] + "` "
+			else:
+				STR += "`"+USER["sname"] + "` "
+		return 	STR + "กำลังทำโจทย์อยู่"
 
 def Pick_One(LIST):
 	return LIST[randint(0,len(LIST)-1)]
