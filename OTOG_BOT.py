@@ -397,6 +397,11 @@ class MyClient(discord.Client):
 			if st >= 7:
 				st += 1
 			if st == 12:
+
+				EEM = self.Get_Em_Contest(int(Contest_Id))
+				if EEM != "เว็ปบึ้มง่าาาาาา":
+					await channel.send(content = None ,embed = EEM)
+
 				Reload_Incoming_Contest()
 				st = 0
 			#print("Delta = "+ str(Contest_Time-Now_Time))
@@ -453,6 +458,58 @@ class MyClient(discord.Client):
 
 			await asyncio.sleep(1)
 
+	def Get_Em_Contest(self,idd):
+		#https://otog.cf/api/contest/history/
+		Contest_api_new = requests.get("https://otog.cf/api/contest/history/"+str(idd))
+		Contest_His = requests.get("https://otog.cf/api/contest/history")
+
+		if Contest_api_new.status_code != 200:
+			return "เว็ปบึ้มง่าาาาาา"
+
+		Contest_api_new = Contest_api_new.json()	
+		Contest_His = Contest_His.json()
+
+		for CC in Contest_His:
+			if CC["idContest"] == idd:
+				Contest_His = CC
+				break
+		
+		if str(type(Contest_His)) != "<class 'dict'>":
+			Contest_His = {"idContest" : idd,"name":"หาไม่เจออ่ะ","mode_grader":"ไม่รู้!","judge":"classic","time_start":0,"time_end":0,"problems":"[]"}
+
+		EM = discord.Embed(\
+			title = "**<:Stonks:704257525759082496>Scoreboard Contest#"+str(idd)+"**",\
+			description = Contest_His["name"],\
+			colour = discord.Colour.from_rgb(255,133,29),\
+			url = "https://otog.cf/contest/history/"+str(idd)\
+		)
+		EM.set_author(name = "Otog",icon_url = "https://otog.cf/logo196.png")
+		for MM in Contest_api_new:
+			SayScore = ":triangular_flag_on_post:คะแนนรวม {}\n".format(MM["sum"])
+			for Sc in MM["scores"]:
+				SayScore += "-{} : {}\n".format(Get_Problem_Name(int(Sc)),MM["scores"][Sc]["score"])+"\t"
+			Medal = ""
+			if MM["rank"] == 1:
+				Medal = ":first_place:"
+			elif MM["rank"] == 2:
+				Medal = ":second_place:"
+			elif MM["rank"] == 3:
+				Medal = ":third_place:"
+			
+			if MM["rank"] > 10:
+				EM.add_field(name = ":no_entry:และยังมีอีกหลายคน...",value = ":free:อยากรู้ก็เข้า otog.cf ไปเล้ย");
+				break
+
+			EM.add_field(name = "**#{} {}[{}]{}**".format(MM["rank"],MM["sname"],MM["rating"],Medal),\
+			value = SayScore,\
+			inline = False)
+		EM.set_footer(text = Pick_One(["จบแล้ว หวังว่าทุกๆคนจะได้อะไรจากคอนเทสนี้ :)","STONK","หิวข้าวอ่ะ"]))
+		
+		return EM
+		
+
+
+
 	async def on_ready(self):
 		global IsStart
 		print('Logged in as')
@@ -507,38 +564,39 @@ class MyClient(discord.Client):
 
 
 		if message.content.lower().startswith(DEB+'help()') or message.content.lower().startswith('!help'):
-			em = discord.Embed(title = ":grey_question:สิ่งที่น้อมทำได้:grey_question:",description = "มีแค่นี้แหละ")
-			em.add_field(name = ":grey_question:help()",value = "ก็ที่ทำอยู่ตอนนี้แหละ")
-			em.add_field(name = ":trophy:contest()",value = "คอนเทสที่กำลังจะมาถึง")
-			em.add_field(name = ":person_playing_handball:task()",value = "จำนวนโจทย์ตอนนี้")
-			em.add_field(name = ":military_medal:ranking()",value = "คำสั่งไว้ขิงกัน")
-			em.add_field(name = ":question:question(<ชื่อโจทย์>) <คำถาม>",value = "ถามคำถามเกี่ยวกับโจทย์ <ชื่อโจทย์>\nและ<คำถาม>ควรตอบเป็น Yes/No(ใช่/ไม่ใช่)")
-			em.add_field(name = ":musical_note:[OtogRadio] <ชื่อเพลง>",value = "ขอเพลงได้ๆๆ")
+			em = discord.Embed(title = ":grey_question:สิ่งที่น้อมทำได้:grey_question:",description = "มีแค่นี้แหละ",colour = discord.Colour.from_rgb(255,133,29))
+			em.add_field(name = ":grey_question:help()",value = "ก็ที่ทำอยู่ตอนนี้แหละ",inline=False)
+			em.add_field(name = ":trophy:contest()",value = "คอนเทสที่กำลังจะมาถึง",inline=False)
+			em.add_field(name = ":person_playing_handball:task()",value = "จำนวนโจทย์ตอนนี้",inline=False)
+			em.add_field(name = ":military_medal:ranking()",value = "คำสั่งไว้ขิงกัน",inline=False)
+			em.add_field(name = ":question:question(<ชื่อโจทย์>) <คำถาม>",value = "ถามคำถามเกี่ยวกับโจทย์ <ชื่อโจทย์>\nและ<คำถาม>ควรตอบเป็น Yes/No(ใช่/ไม่ใช่)",inline=False)
+			em.add_field(name = ":musical_note:[OtogRadio] <ชื่อเพลง>",value = "ขอเพลงได้ๆๆ",inline=False)
 
 			await message.channel.send(content = None ,embed = em)
 
-			em = discord.Embed(title = ":speech_balloon:คำสั่งคนเหงา:speech_balloon:",description = "มีแค่นี้แหละ")
-			em.add_field(name = ":speech_balloon:hello()",value = "คำสั่งคนเหงา")
-			em.add_field(name = ":1234:guess_num()",value = "เล่นเกมทายเลข")
+			em = discord.Embed(title = ":speech_balloon:คำสั่งคนเหงา:speech_balloon:",description = "มีแค่นี้แหละ",colour = discord.Colour.from_rgb(255,133,29))
+			em.add_field(name = ":speech_balloon:hello()",value = "คำสั่งคนเหงา",inline=False)
+			em.add_field(name = ":1234:guess_num()",value = "เล่นเกมทายเลข",inline=False)
 
 			await message.channel.send(content = None ,embed = em)
 
 			if Is_Admin:
-				em = discord.Embed(title = ":grey_question:สิ่งที่แอดมินทำได้:grey_question:",description = "แค่ในนี้เท่านั้น")
-				em.add_field(name = ":orange_heart:user_life()",value = "ดูว่าใครมีชีวิตอยู่บ้าง")
-				em.add_field(name = ":1234:Version()",value = "ตรวจสอบ Version")
-				em.add_field(name = ":loudspeaker:ann() <Text>",value = "ประกาศๆๆๆๆ")
-				em.add_field(name = ":loudspeaker:say(<Channel_ID>) <Text>",value = "ส่ง <Text> ไปยังห้อง <Channel_ID>")
-				em.add_field(name = ":question:q_answer(<id>) <text>",value = "ตอบคำถามที่ <id> โดยคำถามจะหายด้วย")
-				em.add_field(name = ":question:q_remove(<id>)",value = "ลบคำถามที่ <id>")
-				em.add_field(name = ":question:q_clear()",value = "clear คำถามทั้งหมด(ต้องแน่ใจจริงๆว่าจะทำ)")
-				em.add_field(name = ":exclamation:test()",value = "ดูว่าน้องยังมีชีวิตอยู่ไหม")
-				em.add_field(name = ":exclamation:test_Verify()\\n<Code in C/C++>",value = "ทดสอบว่า Grader แมวๆยังใช้ได้ไหม")
-				em.add_field(name = ":exclamation:check_Verify()",value = "ดูว่ามีใครมา Verify ไหม")
-				em.add_field(name = ":exclamation:Watch_Code_Verify(<id>)",value = "ดู Code ของ <id>")
-				em.add_field(name = ":exclamation:test_Verify_Delete()",value = "ลบ Code ของตัวเอง")
-				em.add_field(name = ":exclamation:Force_Reload()",value = "บังคับให้รีโหลดฐานข้อมูลใหม่")
-				em.add_field(name = ":sleeping_accommodation:shutdown()",value = "ชื่อก็บอกอยู่แล้ว")
+				em = discord.Embed(title = ":grey_question:สิ่งที่แอดมินทำได้:grey_question:",description = "แค่ในนี้เท่านั้น",colour = discord.Colour.red())
+				em.add_field(name = ":orange_heart:user_life()",value = "ดูว่าใครมีชีวิตอยู่บ้าง",inline=False)
+				em.add_field(name = ":1234:Version()",value = "ตรวจสอบ Version",inline=False)
+				em.add_field(name = ":loudspeaker:ann() <Text>",value = "ประกาศๆๆๆๆ",inline=False)
+				em.add_field(name = ":loudspeaker:say(<Channel_ID>) <Text>",value = "ส่ง <Text> ไปยังห้อง <Channel_ID>",inline=False)
+				em.add_field(name = ":question:q_answer(<id>) <text>",value = "ตอบคำถามที่ <id> โดยคำถามจะหายด้วย",inline=False)
+				em.add_field(name = ":question:q_remove(<id>)",value = "ลบคำถามที่ <id>",inline=False)
+				em.add_field(name = ":question:q_clear()",value = "clear คำถามทั้งหมด(ต้องแน่ใจจริงๆว่าจะทำ)",inline=False)
+				em.add_field(name = ":exclamation:test()",value = "ดูว่าน้องยังมีชีวิตอยู่ไหม",inline=False)
+				em.add_field(name = ":exclamation:test_Verify()\\n<Code in C/C++>",value = "ทดสอบว่า Grader แมวๆยังใช้ได้ไหม",inline=False)
+				em.add_field(name = ":exclamation:check_Verify()",value = "ดูว่ามีใครมา Verify ไหม",inline=False)
+				em.add_field(name = ":exclamation:Watch_Code_Verify(<id>)",value = "ดู Code ของ <id>",inline=False)
+				em.add_field(name = ":exclamation:test_Verify_Delete()",value = "ลบ Code ของตัวเอง",inline=False)
+				em.add_field(name = ":exclamation:Force_Reload()",value = "บังคับให้รีโหลดฐานข้อมูลใหม่",inline=False)
+				em.add_field(name = ":sleeping_accommodation:shutdown()",value = "ชื่อก็บอกอยู่แล้ว",inline=False)
+				em.add_field(name = ":checkered_flag:Score_Board(<id>)",value = "ไว้ใช้ดูคะแนนในคอนเทส <id>",inline=False)
 				await message.channel.send(content = None ,embed = em)
 
 		if message.content.lower().startswith(DEB+'guess_num()'):
@@ -906,6 +964,24 @@ class MyClient(discord.Client):
 					await channel.send(":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str)
 
 				await message.delete()
+			
+			if message.content.lower().startswith(DEB+'score_board('):
+				Str_Content = message.content
+				IdCon = Str_Content.find("(")
+				for i in range(1,40):
+					if Str_Content[IdCon+i]==")":
+						IdCon = Str_Content[IdCon+1:IdCon+i]
+						break
+				try:
+					IdCon = int(IdCon)
+				except:
+					await message.channel.send("ฮั่นแน่ ส่งอะไรมา อ่านไม่ออกเว้ยย")
+					return
+				EEM = self.Get_Em_Contest(IdCon)
+				if EEM == "เว็ปบึ้มง่าาาาาา":
+					await message.channel.send("บึ้มง่าาาาาา")
+					return
+				await message.channel.send(content = None ,embed = EEM)
 
 
 			if message.content.lower().startswith(DEB+'say('):
