@@ -23,7 +23,7 @@ DEB = "" #Before Command
 if DEB != "":
 	Bot_Namae = "น้อวงตัวน้อยยย"
 
-VER = "B08"
+VER = "B09"
 
 IsStart = False
 
@@ -122,7 +122,7 @@ def Reload_Incoming_Contest():
 		Contest_End = INF
 		Contest_Id = -1
 
-	for cc in Con:
+	for cc in Con['result']:
 		if cc['time_start'] < Contest_Time:
 			Contest_Time = cc['time_start']
 			Contest_End = cc['time_end']
@@ -466,14 +466,14 @@ class MyClient(discord.Client):
 		if Contest_api_new.status_code != 200:
 			return "เว็ปบึ้มง่าาาาาา"
 
-		Contest_api_new = Contest_api_new.json()	
+		Contest_api_new = Contest_api_new.json()
 		Contest_His = Contest_His.json()
 
 		for CC in Contest_His:
 			if CC["idContest"] == idd:
 				Contest_His = CC
 				break
-		
+
 		if str(type(Contest_His)) != "<class 'dict'>":
 			Contest_His = {"idContest" : idd,"name":"หาไม่เจออ่ะ","mode_grader":"ไม่รู้!","judge":"classic","time_start":0,"time_end":0,"problems":"[]"}
 
@@ -495,7 +495,7 @@ class MyClient(discord.Client):
 				Medal = ":second_place:"
 			elif MM["rank"] == 3:
 				Medal = ":third_place:"
-			
+
 			if MM["rank"] > 10:
 				EM.add_field(name = ":no_entry:และยังมีอีกหลายคน...",value = ":free:อยากรู้ก็เข้า otog.cf ไปเล้ย");
 				break
@@ -504,9 +504,9 @@ class MyClient(discord.Client):
 			value = SayScore,\
 			inline = False)
 		EM.set_footer(text = Pick_One(["จบแล้ว หวังว่าทุกๆคนจะได้อะไรจากคอนเทสนี้ :)","STONK","หิวข้าวอ่ะ"]))
-		
+
 		return EM
-		
+
 
 
 
@@ -964,7 +964,7 @@ class MyClient(discord.Client):
 					await channel.send(":loudspeaker:@everyone:loudspeaker:\n"+Mes_Str)
 
 				await message.delete()
-			
+
 			if message.content.lower().startswith(DEB+'score_board('):
 				Str_Content = message.content
 				IdCon = Str_Content.find("(")
