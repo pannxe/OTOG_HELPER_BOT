@@ -2,6 +2,7 @@ from subprocess import Popen, PIPE, STDOUT
 import subprocess
 import signal
 import os
+import time
 
 PATH = os.path.realpath(__file__)
 while PATH[-1] != "\\":
@@ -9,50 +10,66 @@ while PATH[-1] != "\\":
 
 
 def Grading(namae):
+	Now_FILE = "VerifyCode\\" +namae + ".cpp"
+	Now_EXE = "VerifyCode\\" +namae + "RUN"
 
-	Now_FILE = "VerifyCode\\"+namae+".cpp"
-	Now_EXE = "VerifyCode\\"+namae+"RUN"
-
-	p = Popen(['g++',PATH+Now_FILE,'-o',Now_EXE], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-	(a,b) = p.communicate()
+	p = Popen(['g++', '-O2', PATH+Now_FILE,'-o', Now_EXE], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+	(a,_) = p.communicate()
 	a = a.decode()
 	RET = p.returncode
 	if RET!= 0:
-		return "อ่อนหัด!! แค่นี้ก็ยัง ERROR\n"+a.replace(PATH,"..\\")
-	Verdict = ""
+		return "อ่อนหัด!! แค่นี้ก็ยัง ERROR\n" + a.replace(PATH,"..\\")
 
+	Verdict = ""
+	sumTime = 0
+	per = True
 	for i in range(1,10+1):
+		startTime = time.time()
 		p = Popen([PATH+Now_EXE], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-		F = open("Pat1TestCase\\"+str(i)+".in","r")
 		try:
-			OUT = p.communicate(timeout=2,input=F.read().encode())[0]
+			with open("Pat1TestCase\\" +str(i)+".in") as F:
+				OUT = p.communicate(timeout=2,input=F.read().encode())[0]
+			sumTime += time.time() - startTime
 			RET = p.returncode
 		except subprocess.TimeoutExpired:
-			Verdict += "T"
-			per= False
+			sumTime += time.time() - startTime
 			p.terminate()
+			Verdict += "T"
+			per = False
 			continue
 
 		p.terminate()
-		F.close()
 
 		if RET != 0:
 			Verdict += "X"
-			per= False
+			per = False
 			continue
 
-		OUT = OUT.decode()
-		OUT  = OUT.replace("\r","")
-		while OUT[-1] == " " or OUT[-1] == "\n":
-			OUT = OUT[:-1]
-		F = open("Pat1TestCase\\"+str(i)+".sol","r")
-		SOL = F.read()
-		F.close()
-		while SOL[-1] == " " or SOL[-1] == "\n":
-			SOL = SOL[:-1]
 
-		if OUT != SOL:
+
+
+		with open("Pat1TestCase\\" +str(i)+".sol") as F:
+			SOL = F.read().strip()
+
+		SOL = SOL.split('\n')
+		OUT = OUT.decode().strip().split('\n')
+
+
+		if len(OUT) != len(SOL):
 			Verdict += "-"
 		else:
-			Verdict += "P"
+
+			LL = 0
+			Pass = True
+			while LL < len(OUT) and Pass:
+				#print(OUT[LL].rstrip(),"|vs|",SOL[LL].rstrip(),"=",OUT[LL].rstrip() == SOL[LL].rstrip())
+				if OUT[LL].rstrip() != SOL[LL].rstrip():
+					Pass = False
+				LL+=1
+			if Pass:
+				Verdict +="P"
+			else:
+				Verdict +="-"
+
+
 	return Verdict

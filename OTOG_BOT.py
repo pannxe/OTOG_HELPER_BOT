@@ -19,7 +19,7 @@ while PATH[-1] != "\\":
 INF = 999999999999999999999999
 
 Bot_Namae = "OTOG - One Tambon One Grader"
-DEB = "" #Before Command
+DEB = ">>" #Before Command
 if DEB != "":
 	Bot_Namae = "น้อวงตัวน้อยยย"
 
@@ -597,6 +597,7 @@ class MyClient(discord.Client):
 				em.add_field(name = ":exclamation:Force_Reload()",value = "บังคับให้รีโหลดฐานข้อมูลใหม่",inline=False)
 				em.add_field(name = ":sleeping_accommodation:shutdown()",value = "ชื่อก็บอกอยู่แล้ว",inline=False)
 				em.add_field(name = ":checkered_flag:Score_Board(<id>)",value = "ไว้ใช้ดูคะแนนในคอนเทส <id>",inline=False)
+				em.add_field(name = ":checkered_flag:Send_Score_Board(<channel_id>) <id>",value = "ไวส่งคะแนนใน <channel_id> ของคอนเทส <id>",inline=False)
 				await message.channel.send(content = None ,embed = em)
 
 		if message.content.lower().startswith(DEB+'guess_num()'):
@@ -983,6 +984,38 @@ class MyClient(discord.Client):
 					return
 				await message.channel.send(content = None ,embed = EEM)
 
+			if message.content.lower().startswith(DEB+'send_score_board('):
+				Str_Content = message.content
+				Id_channel = Str_Content.find("(")
+				for i in range(1,40):
+					if Str_Content[Id_channel+i]==")":
+						Id_channel = Str_Content[Id_channel+1:Id_channel+i]
+						break
+				try:
+					Id_channel = int(Id_channel)
+				except:
+					await message.channel.send("ฮั่นแน่ ส่งอะไรมา อ่านไม่ออกเว้ยย")
+					return
+
+
+				IdCon = Str_Content[Str_Content.find(")")+1:].strip()
+
+				try:
+					IdCon = int(IdCon)
+				except:
+					await message.channel.send("ฮั่นแน่ ส่งอะไรมา อ่านไม่ออกเว้ยย")
+					return
+
+				#print(Id_channel,client.get_channel(Id_channel))
+				Id_channel = client.get_channel(Id_channel)
+
+
+				EEM = self.Get_Em_Contest(IdCon)
+				if EEM == "เว็ปบึ้มง่าาาาาา":
+					await Id_channel.send("บึ้มง่าาาาาา")
+					return
+				await Id_channel.send(content = None ,embed = EEM)
+
 
 			if message.content.lower().startswith(DEB+'say('):
 				Str_Content = message.content
@@ -1024,7 +1057,6 @@ class MyClient(discord.Client):
 			if message.content.lower().startswith(DEB+'say_test('):
 				Str_Content = message.content
 
-				#Say(4412) ไอ้นี้มันอู้งานครับบ
 				Id_channel = Str_Content.find("(")
 
 				for i in range(1,40):
