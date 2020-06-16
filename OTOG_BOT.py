@@ -23,7 +23,7 @@ DEB = "" #Before Command
 if DEB != "":
 	Bot_Namae = "น้อวงตัวน้อยยย"
 
-VER = "B09"
+VER = "B10"
 
 IsStart = False
 
@@ -644,7 +644,7 @@ class MyClient(discord.Client):
 					except:
 						Guess_Num[namae]["Time"]+= 1
 						if Guess_Num[namae]["Time"] == 7:
-							await message.channel.send(":question:ข้าไม่รู้นะว่าเจ้าส่งอะไรมา("+Mes_Str+") แต่ตอนนี้เจ้าแพ้แล้ว... "+Getname(self,namae,GUILD)+"\nเฉลยคือ "+str(Guess_Num[namae]["ANS"]))
+							await message.channel.send(":question:ข้าไม่รู้นะว่าเจ้าส่งอะไรมา("+Mes_Str+") แต่ตอนนี้เจ้าแพ้แล้ว... "+Getname(self,namae,GUILD)+"\nเฉลยคือ "+str(Guess_Num[namae]["ANS"]) + "\nhttps://tenor.com/view/capoo-cat-gato-bailar-dance-gif-9881661")
 							await message.delete()
 							Guess_Num.pop(namae,None)
 						else:
@@ -655,39 +655,39 @@ class MyClient(discord.Client):
 					if LEK > Guess_Num[namae]["ANS"]:
 						if Guess_Num[namae]["Time"] == 7:
 							if Guess_Num[namae]["Troll"] and Guess_Num[namae]["TrollSeq"]:
-								await message.channel.send(":white_check_mark:ข้าล้อเล่นๆๆ จริงๆ"+str(Guess_Num[namae]["ANS"])+"มันถูกละ555 เจ้าชนะนะ "+Getname(self,namae,GUILD))
+								await message.channel.send(":white_check_mark:ข้าล้อเล่นๆๆ จริงๆ"+str(Guess_Num[namae]["ANS"])+"มันถูกละ555 เจ้าชนะนะ "+Getname(self,namae,GUILD)+ "\nhttps://tenor.com/view/capoo-cat-gato-bailar-dance-gif-9881661")
 								await message.delete()
 							else:
-								await message.channel.send(":x:"+Mes_Str+"น่ะ**มันสูงเกิน**... เจ้าแพ้แล้ว "+Getname(self,namae,GUILD)+"\nเฉลยคือ "+str(Guess_Num[namae]["ANS"]))
+								await message.channel.send(":x: "+Mes_Str+" น่ะ**มันสูงเกิน**... เจ้าแพ้แล้ว "+Getname(self,namae,GUILD)+"\nเฉลยคือ "+str(Guess_Num[namae]["ANS"])+ "\nhttps://tenor.com/view/capoo-cat-gato-bailar-dance-gif-9881661")
 								await message.delete()
 							Guess_Num.pop(namae,None)
 						else:
-							await message.channel.send(":arrow_up:"+Mes_Str+"น่ะ**มันสูงเกิน**... เหลือ: **"+str(7-Guess_Num[namae]["Time"])+" ครั้ง**นะเจ้า "+Getname(self,namae,GUILD))
+							await message.channel.send(":arrow_up: "+Mes_Str+" น่ะ**มันสูงเกิน**... เหลือ: **"+str(7-Guess_Num[namae]["Time"])+" ครั้ง**นะเจ้า "+Getname(self,namae,GUILD))
 							await message.delete()
 					elif LEK < Guess_Num[namae]["ANS"]:
 						if Guess_Num[namae]["Time"] == 7:
 							if Guess_Num[namae]["Troll"] and Guess_Num[namae]["TrollSeq"]:
-								await message.channel.send(":white_check_mark:ข้าล้อเล่นๆๆ จริงๆ"+str(Guess_Num[namae]["ANS"])+"มันถูกละ555 เจ้าชนะนะ "+Getname(self,namae,GUILD))
+								await message.channel.send(":white_check_mark:ข้าล้อเล่นๆๆ จริงๆ"+str(Guess_Num[namae]["ANS"])+"มันถูกละ555 เจ้าชนะนะ "+Getname(self,namae,GUILD)+ "\nhttps://tenor.com/view/capoo-cat-gato-bailar-dance-gif-9881661")
 								await message.delete()
 							else:
-								await message.channel.send(":x:"+Mes_Str+"ของเจ้าน่ะ**มันต่ำเกิน**... เจ้าแพ้แล้ว "+Getname(self,namae,GUILD)+"\nเฉลยคือ "+str(Guess_Num[namae]["ANS"]))
+								await message.channel.send(":x: "+Mes_Str+" ของเจ้าน่ะ**มันต่ำเกิน**... เจ้าแพ้แล้ว "+Getname(self,namae,GUILD)+"\nเฉลยคือ "+str(Guess_Num[namae]["ANS"])+ "\nhttps://tenor.com/view/capoo-cat-gato-bailar-dance-gif-9881661")
 								await message.delete()
 							Guess_Num.pop(namae,None)
 						else:
-							await message.channel.send(":arrow_down:"+Mes_Str+"ของเจ้าน่ะ**มันต่ำเกิน**... เหลือ: **"+str(7-Guess_Num[namae]["Time"])+" ครั้ง**นะเจ้า "+Getname(self,namae,GUILD))
+							await message.channel.send(":arrow_down: "+Mes_Str+" ของเจ้าน่ะ**มันต่ำเกิน**... เหลือ: **"+str(7-Guess_Num[namae]["Time"])+" ครั้ง**นะเจ้า "+Getname(self,namae,GUILD))
 							await message.delete()
 					elif LEK == Guess_Num[namae]["ANS"]:
 						if Guess_Num[namae]["Troll"]:
 							if Guess_Num[namae]["Time"] == 7:
-								await message.channel.send(":arrow_up:"+Mes_Str+"ของเจ้าน่ะ**มันสูงเกิน**... ข้าล้อเล่น \n:white_check_mark:**"+Mes_Str+"**น่ะถูกแล้วนะ... เจ้า "+Getname(self,namae,GUILD))
+								await message.channel.send(":arrow_up: "+Mes_Str+" ของเจ้าน่ะ**มันสูงเกิน**... ข้าล้อเล่น \n:white_check_mark:**"+Mes_Str+"**น่ะถูกแล้วนะ... เจ้า "+Getname(self,namae,GUILD)+ "\nhttps://tenor.com/view/capoo-cat-gato-bailar-dance-gif-9881661")
 								await message.delete()
 								Guess_Num.pop(namae,None)
 							else:
-								await message.channel.send(":arrow_up:"+Mes_Str+"ของเจ้าน่ะ**มันสูงเกิน**... เหลือ: **"+str(7-Guess_Num[namae]["Time"])+" ครั้ง**นะเจ้า "+Getname(self,namae,GUILD))
+								await message.channel.send(":arrow_up: "+Mes_Str+" ของเจ้าน่ะ**มันสูงเกิน**... เหลือ: **"+str(7-Guess_Num[namae]["Time"])+" ครั้ง**นะเจ้า "+Getname(self,namae,GUILD))
 								await message.delete()
 								Guess_Num[namae]["TrollSeq"] = True
 						else:
-							await message.channel.send(":white_check_mark:ถถถถถูกต้อง ตัวเลขข้าคือ "+Mes_Str+" เก่งไม่เบาเลยนะเจ้า "+Getname(self,namae,GUILD))
+							await message.channel.send(":white_check_mark:ถถถถถูกต้อง ตัวเลขข้าคือ "+Mes_Str+" เก่งไม่เบาเลยนะเจ้า "+Getname(self,namae,GUILD)+"\nhttps://tenor.com/view/think-about-it-use-your-brain-use-the-brain-think-brain-gif-7914082")
 							await message.delete()
 							Guess_Num.pop(namae,None)
 
